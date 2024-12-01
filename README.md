@@ -316,4 +316,5 @@ Vaswani, A., et al. (2017). Attention is all you need. Link
 OpenAI Baselines: GitHub Repository
 Stable Baselines3 Documentation: Link
 PyTorch Documentation: Link
-TA-Lib Technical Analysis Library: Link
+TA-Lib Technical Analysis Library: Link# tradesformer
+A new approach to Forex trading using PPO with Gym. The strategy incorporates multiple FX pairs into a single environment, enabling simultaneous decision-making, pair selection, and hedging opportunities. The environment is designed for weekly-based Forex trading, focusing on optimizing Sharpe ratios, win rates, and overall portfolio management.
