@@ -1,26 +1,31 @@
-## Make a Forex Trading App based on LLM for day trader to make a profit
+## Make a Forex Trading App based on LLM for day trader
+
+## fundamental principles
+
+### Bars
 The trading price over a period of time can be condensed into a bar (such as the commonly used candlestick). In this context, a bar represents this concept. A bar should contain information about both the random fluctuations in price and certain patterns (like trends). Therefore, we need a vector to map the information contained in the bar, and we can perform a bar-to-vector transformation (bar2vec).
 
 Candlesticks compress price changes over a period of time, providing only four basic representations of the price during that time period (open, close, high, low). It does not include the distribution state of the price within that time frame. We can consider adding an indicator value for the normal distribution of the bar during the pre-processing stage, which reflects the shape distribution of the price over time. Although this information may not be particularly useful for graphical analysis, it could be very valuable for machine learning.
 
-A series of bars over a period of time (regardless of the time unit) represents the price changes during that period, essentially forming a language of price changes. However, unlike NLP, not every bar in the sequence is meaningful. A large portion of bars do not represent price trends, or their patterns are completely drowned out by noise. Particularly, when the time unit of the bar is smaller, the random fluctuations (i.e., white noise) component becomes larger. As we all know, noise is random and unpredictable. Therefore, in smaller time units, only strong and clear price trend signals are meaningful. This is why models based on 5-minute intervals may perform better than 1-minute models because the price trend representations are more prominent in the former. Even so, in the feature space of price changes, the effect of mapping remains a long-tail distribution. Most bars have feature space mapping values that are drowned out by noise and are unpredictable. Only the "head" of the long tail can provide support for price predictions. This is why we consider using Probability Sparse Self-Attention for encoding and decoding.
+A series of bars over a period of time (regardless of the time unit) represents the price changes during that period, essentially forming a language of price changes (LPC). However, unlike NLP, not every bar in the sequence is meaningful. A large portion of bars do not represent price trends, or their patterns are completely drowned out by noise. Particularly, when the time unit of the bar is smaller, the random fluctuations (i.e., white noise) component becomes larger. As we all know, noise is random and unpredictable. Therefore, in smaller time units, only strong and clear price trend signals are meaningful. This is why models based on 5-minute intervals may perform better than 1-minute models because the price trend representations are more prominent in the former. Even so, in the feature space of price changes, the effect of mapping remains a long-tail distribution. Most bars have feature space mapping values that are drowned out by noise and are unpredictable. Only the "head" of the long tail can provide support for price predictions. This is why we consider using Probability Sparse Self-Attention for encoding and decoding.
 
-Trading Market
+### Trading Market
 From the perspective of the market, what drives price changes, and why do prices fluctuate? Price theory suggests:
 
-Market behavior contains all information.
-Prices move along a trend.
-History repeats itself.
+1. Market behavior contains all information.
+2. Prices move along a trend.
+3. History repeats itself.
 If price theory is correct, then based on points 2 and 3, prices move along a trend, which can be understood as prices having a trend over a given period of time, making them predictable. Market behavior can also be viewed as price fluctuations. According to point 1, the factors driving price changes include the following key elements:
 
-The judgment of buyers and sellers on market prices (banks, institutions, market makers).
-News (interest rate changes, economic outlook, etc.), unexpected events.
-Seasonal and large economic cycles.
+1. The judgment of buyers and sellers on market prices (banks, institutions, market makers).
+2. News (interest rate changes, economic outlook, etc.), unexpected events.
+3. Seasonal and large economic cycles.
+   
 A bar sequence only reflects price changes, without including the driving forces behind these changes. Moreover, one of the most important drivers of price changes (point 1) lacks clear, quantifiable information that can be incorporated. This highlights that our predictions are based on incomplete and asymmetric information. To improve the reliability of predictions, we should aim to include as much of the information from points 2 and 3 in historical and future forecast data. Specifically, more information should be added to the time dimension, such as (hour, day, day of the week, day of the month, month, year, which market, news).
 
 Transformers have indeed shown remarkable progress in both NLP (BERT, GPT) and CV (ViT, etc.), and despite the models getting larger (reaching terabytes of parameters), overfitting has not been a major concern, indicating the robustness of the transformer architecture.
 
-Applying Transformers to the Trading Market
+### Applying Transformers to the Trading Market
 It is indeed possible to apply transformers to the trading market. Trading data, such as historical data from stocks, forex, and cryptocurrency markets, provides a large and diverse dataset that could be used to train such models. The volume and variety of this data make it well-suited for transformer-based models, which thrive on large-scale datasets.
 
 Using transformers in the trading domain has several advantages:
@@ -33,22 +38,22 @@ Fine-tuning for Specific Assets or Pairs: Once a general model has been trained 
 
 Handling Noisy Data: Financial markets have a significant amount of noise (random fluctuations in prices), making prediction a challenge. The long-tail distribution of bar data and the noise within small time units make it crucial to focus on meaningful trend data. Transformers, with their attention mechanisms, can potentially identify important signals while ignoring irrelevant noise.
 
-Model Considerations
+### Model Considerations
 When applying transformers to trading markets, some specific considerations should be made:
 
 Self-Attention and the Long-Tail Distribution: In the trading market, only a small portion of the data (the "head" of the long tail) contains meaningful information for predictions, while much of the data is noise. A multi-head probabilistic sparse self-attention (probSparse) could be used to focus on the most important parts of the feature map. This can reduce memory and computation costs by only attending to significant trends and patterns, which would be particularly beneficial when dealing with long sequences of trading data.
 
 Encoding Options: The original transformer encoding mechanism may work well in the trading domain, but adjustments like probSparse self-attention could optimize it further. This method could potentially allow the model to capture the key signals in trading data more efficiently by ignoring random fluctuations.
 
-Expected Performance
+### Expected Performance
 Given these factors, it's reasonable to expect that a transformer-based approach could outperform other methods like LSTM or traditional technical analysis in market prediction tasks, particularly for long-term dependencies and complex relationships between data points. By fine-tuning the model for specific assets and time periods, the predictive performance could be further enhanced, making transformers a promising tool for financial market analysis and trading strategies.
 
 Overall, the application of transformers to trading markets represents an exciting opportunity to leverage their robustness and scalability, provided that the models are carefully designed to handle the unique challenges of market data.
 
-Input Pre-processing: Bar Preprocessing Strategy
+### Input Pre-processing: Bar Preprocessing Strategy
 In this approach, we treat the length of bars (measured in days) as equivalent to sentence lengths in NLP tasks. The goal is to avoid sequences that are too long, as this would exponentially increase the complexity (dimensionality), similar to how sentence length affects NLP models. Using natural day boundaries for segmentation is an ideal choice.
 
-Maximum Number of Bars in One Day (Granularity of Time)
+### Maximum Number of Bars in One Day (Granularity of Time)
 1 min bars: Minimal information loss, but high noise, resulting in 1,440 bars per day (60 bars/hour × 24 hours). The sequence length is large.
 5 min bars: Minimal information loss with reasonable noise levels, resulting in 288 bars per day. The sequence length is reasonable, making it a good compromise.
 15 min bars: Greater information loss, reasonable noise, with 96 bars per day. Sequence length is still manageable.
