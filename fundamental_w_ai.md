@@ -1,4 +1,4 @@
-## Make a Forex Trading App based on LLM for day trader
+# Make a Forex Trading App based on LLM for day trader
 
 ## fundamental principles
 
