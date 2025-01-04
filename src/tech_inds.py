@@ -49,11 +49,6 @@ sequences = create_sequences(data, sequence_length)
 import torch
 import torch.nn as nn
 torch.autograd.set_detect_anomaly(True)
-import torch
-import torch.nn as nn
-
-import torch
-import torch.nn as nn
 
 class TimeSeriesTransformer(nn.Module):
     def __init__(self, input_size, embed_dim, num_heads, num_layers, dropout=0.1):
