@@ -122,7 +122,6 @@ def split_timeserious(df, key_ts='dt', freq='W', symbol=''):
         fname = f'{symbol}_{n:%Y}_{count}.csv'
         fn = f'{p}/{fname}'
         print(f'save to:{fn} -- row {len(g)}')
-        g.rename(columns={g.columns[0]: 'step'}, inplace=True)
         g.reset_index(drop=True, inplace=True)
         # g.drop(columns =['dt'], inplace=True)
         g.to_csv(fn)
