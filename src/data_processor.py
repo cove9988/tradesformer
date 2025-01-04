@@ -21,7 +21,7 @@ def patch_missing_data(df, dt_col_name):
     # print(sunday_rows[:100])
 
     # Drop helper columns if not needed
-    df.drop(columns=["original_date"], inplace=True)
+    df.drop(columns=["original_date","weekday"], inplace=True)
     df = df.sort_index()
    # Check for duplicate index values
     if not df.index.is_unique:
@@ -77,6 +77,7 @@ def add_time_feature(df,symbol):
 
     df['symbol'] = symbol
     # df.index.names = ['step']
+    df["weekday"] = df.index.dayofweek
     df['minute'] =df['dt'].dt.minute
     df['hour'] =df['dt'].dt.hour
     df['week'] = df['dt'].dt.isocalendar().week
@@ -121,6 +122,7 @@ def split_timeserious(df, key_ts='dt', freq='W', symbol=''):
         fname = f'{symbol}_{n:%Y}_{count}.csv'
         fn = f'{p}/{fname}'
         print(f'save to:{fn} -- row {len(g)}')
+        g.rename(columns={g.columns[0]: 'step'}, inplace=True)
         g.reset_index(drop=True, inplace=True)
         # g.drop(columns =['dt'], inplace=True)
         g.to_csv(fn)
