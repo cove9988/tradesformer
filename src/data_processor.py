@@ -6,7 +6,6 @@ from finta import TA
 def patch_missing_data(df, dt_col_name):
     if df.shape[1] == 6:
         df.columns = ['time', 'open', 'high', 'low', 'close', 'vol']    
-    df = pd.DataFrame(df, columns=["time", "open", "high", "low", "close", "volume"])
     
     # df["time"] = pd.to_datetime(df["time"])
     # df.set_index("time", inplace=True)
@@ -15,6 +14,8 @@ def patch_missing_data(df, dt_col_name):
     df["weekday"] = df.index.dayofweek  # Monday=0, Sunday=6
     df["original_date"] = df.index          # Keep the original date for reference
     df.index = df.index.where(df["weekday"] != 6, df.index - pd.Timedelta(days=2))
+    df["time"] = df.index
+    
     # sunday_rows = df[df["weekday"] == 6].copy()
     # sunday_rows["adjusted_timestamp"] = sunday_rows.index - pd.Timedelta(days=2)
     # print(sunday_rows[:100])
@@ -45,7 +46,10 @@ def patch_missing_data(df, dt_col_name):
 
         previous_row = df.loc[previous_index]
         new_row = previous_row.copy()
-        new_row.name = ts  # Assign the missing timestamp
+        new_row["time"] = ts  # Assign the missing timestamp
+        new_row["dt"] = ts
+        new_row.name = ts
+        # print(f"-------------\n{new_row}\n--------")
         df = pd.concat([df, pd.DataFrame([new_row])])
 
         # Sort the DataFrame by datetime
