@@ -1,5 +1,7 @@
 # dahu project
 .dahu/
+./data/log/**
+./data/raw/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
