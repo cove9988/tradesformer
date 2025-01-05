@@ -79,7 +79,6 @@ class TimeSeriesTransformer(nn.Module):
         # Return the output from the last time step
         return output[:, -1, :]
 
-
 class CustomCombinedExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Box):
         super(CustomCombinedExtractor, self).__init__(observation_space, features_dim=64)
@@ -90,6 +89,8 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
         embed_dim = 64
         num_heads = 2
 
+        self.layernorm_before = nn.LayerNorm(num_features) # Added Layer Normalization before transformer
+
         self.transformer = TimeSeriesTransformer(
             input_size=num_features,
             embed_dim=embed_dim,
@@ -98,7 +99,10 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
         )
 
     def forward(self, observations):
-        x = self.transformer(observations)
+        # Apply layer normalization
+        normalized_observations = self.layernorm_before(observations.float()) # Ensure float type
+
+        x = self.transformer(normalized_observations)
         if torch.isnan(x).any() or torch.isinf(x).any():
             raise ValueError("Invalid values in transformer output")
         return x
