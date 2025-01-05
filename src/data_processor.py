@@ -123,10 +123,18 @@ def split_timeserious(df, key_ts='dt', freq='W', symbol=''):
         fn = f'{p}/{fname}'
         print(f'save to:{fn} -- row {len(g)}')
         g.reset_index(drop=True, inplace=True)
+        g = pivot_open(g)
         # g.drop(columns =['dt'], inplace=True)
-        g.to_csv(fn)
+        g.to_csv(fn, float_format = '%.6f')
         count += 1
     return 
+
+def pivot_open(df):
+    columns = ["open","high","low","close","boll_ub","boll_lb","close_30_sma","close_60_sma"]
+    pivot_open_value = df.loc[df.index[0],"open"]
+    for col in columns:
+        df[col] = df[col] - pivot_open_value
+    return df
 """
 python ./data/data_processor.py GBPUSD W ./data/raw/GBPUSD_M5.csv
 symbol="GBPUSD"
