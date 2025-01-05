@@ -46,15 +46,14 @@ class TimeSeriesTransformer(nn.Module):
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=embed_dim,
             nhead=num_heads,
-            dropout=dropout
+            dropout=dropout,
+            norm_first=True  # Apply LayerNorm before attention and feedforward
         )
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer,
-            num_layers=num_layers
+            num_layers=num_layers,
+            norm=nn.LayerNorm(embed_dim) # Add LayerNorm at the end of the encoder
         )
-
-        # Layer normalization
-        self.layer_norm = nn.LayerNorm(embed_dim)
 
         # Decoder layer to produce final output
         self.decoder = nn.Linear(embed_dim, embed_dim)
@@ -65,9 +64,6 @@ class TimeSeriesTransformer(nn.Module):
 
         # Pass through the transformer encoder
         output = self.transformer_encoder(src)
-
-        # Apply layer normalization
-        output = self.layer_norm(output)
 
         # Pass through the decoder layer
         output = self.decoder(output)
