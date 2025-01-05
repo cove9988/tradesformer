@@ -1,4 +1,5 @@
 # %%
+import logging
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import PPO
 import gymnasium as gym
@@ -10,6 +11,13 @@ from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+logger.info(f"Using device: {device}")
+# %%
 data = pd.read_csv("/home/paulg/github/tradesformer/data/split/AUDUSD/weekly/AUDUSD_2022_1.csv")
 
 features = ['open', 'high', 'low', 'close', 'vol', 'macd','boll_ub','boll_lb','rsi_30','dx_30','close_30_sma','close_60_sma']
@@ -17,15 +25,22 @@ sequence_length = len(features)  # Number of past observations to consider
 scaler = MinMaxScaler()
 data[features] = scaler.fit_transform(data[features])
 
+# Check for NaN or Inf values after scaling
+if data[features].isnull().values.any() or np.isinf(data[features].values).any():
+    logger.error("Data contains NaN or Inf values after scaling")
+    raise ValueError("Data contains NaN or Inf values after scaling")
+
 # Reset index
 data = data.reset_index()
-data
+logger.info("Data loaded and preprocessed successfully")
 # %%
 def create_sequences(df, seq_length):
+    logger.info("Creating sequences...")
     sequences = []
     for i in range(len(df) - seq_length):
         seq = df.iloc[i:i+seq_length][features].values
         sequences.append(seq)
+    logger.info("Sequences created successfully")
     return np.array(sequences)
 
 sequences = create_sequences(data, sequence_length)
@@ -37,10 +52,10 @@ class TimeSeriesTransformer(nn.Module):
         self.embed_dim = embed_dim
 
         # Embedding layer to project input features to embed_dim dimensions
-        self.embedding = nn.Linear(input_size, embed_dim)
+        self.embedding = nn.Linear(input_size, embed_dim).to(device)
 
         # Positional encoding parameter
-        self.positional_encoding = nn.Parameter(torch.zeros(1, sequence_length, embed_dim))
+        self.positional_encoding = nn.Parameter(torch.zeros(1, sequence_length, embed_dim).to(device))
 
         # Transformer encoder layer
         encoder_layer = nn.TransformerEncoderLayer(
@@ -48,15 +63,15 @@ class TimeSeriesTransformer(nn.Module):
             nhead=num_heads,
             dropout=dropout,
             norm_first=True  # Apply LayerNorm before attention and feedforward
-        )
+        ).to(device)
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer,
             num_layers=num_layers,
-            norm=nn.LayerNorm(embed_dim) # Add LayerNorm at the end of the encoder
+            norm=nn.LayerNorm(embed_dim).to(device) # Add LayerNorm at the end of the encoder
         )
 
         # Decoder layer to produce final output
-        self.decoder = nn.Linear(embed_dim, embed_dim)
+        self.decoder = nn.Linear(embed_dim, embed_dim).to(device)
 
     def forward(self, src):
         # Apply embedding layer and add positional encoding
@@ -70,6 +85,7 @@ class TimeSeriesTransformer(nn.Module):
 
         # Check for NaN or Inf values for debugging
         if torch.isnan(output).any() or torch.isinf(output).any():
+            logger.error("Transformer output contains NaN or Inf values")
             raise ValueError("Transformer output contains NaN or Inf values")
 
         # Return the output from the last time step
@@ -85,21 +101,22 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
         embed_dim = 64
         num_heads = 2
 
-        self.layernorm_before = nn.LayerNorm(num_features) # Added Layer Normalization before transformer
+        self.layernorm_before = nn.LayerNorm(num_features).to(device) # Added Layer Normalization before transformer
 
         self.transformer = TimeSeriesTransformer(
             input_size=num_features,
             embed_dim=embed_dim,
             num_heads=num_heads,
             num_layers=2
-        )
+        ).to(device)
 
     def forward(self, observations):
         # Apply layer normalization
-        normalized_observations = self.layernorm_before(observations.float()) # Ensure float type
+        normalized_observations = self.layernorm_before(observations.float().to(device)) # Ensure float type
 
         x = self.transformer(normalized_observations)
         if torch.isnan(x).any() or torch.isinf(x).any():
+            logger.error("Invalid values in transformer output")
             raise ValueError("Invalid values in transformer output")
         return x
 
@@ -147,6 +164,7 @@ class ForexTradingEnv(gym.Env):
         self.total_profit = 0.0
 
         self.current_step = np.random.randint(self.sequence_length, self.max_steps)
+        logger.info(f"Environment reset. Starting at step {self.current_step}")
 
         observation = self._next_observation()
         info = {}
@@ -157,10 +175,11 @@ class ForexTradingEnv(gym.Env):
             self.current_step - self.sequence_length : self.current_step
         ][features].values
         # Convert to float32 tensor
-        obs = torch.tensor(obs, dtype=torch.float32)
+        obs = torch.tensor(obs, dtype=torch.float32).to(device)
         if torch.isnan(obs).any() or torch.isinf(obs).any():
+            logger.error(f"Invalid observation at step {self.current_step}")
             raise ValueError(f"Invalid observation at step {self.current_step}")
-        return obs
+        return obs.cpu().numpy() #obs
 
     def _calculate_reward(self, position, current_price):
         entry_price = position['entry_price']
@@ -191,22 +210,24 @@ class ForexTradingEnv(gym.Env):
         # Execute action
         if action == 1:  # Buy
             if self.balance > 0:
-                position_size = self.balance / current_price
+                position_size = 1 #self.balance / current_price
                 self.positions.append({
                     'direction': 'buy',
                     'entry_price': current_price,
                     'size': position_size
                 })
-                self.balance = 0
+                # self.balance = 0
+                logger.info(f"Buy action executed at price {current_price}")
         elif action == 2:  # Sell
             if self.balance > 0:
-                position_size = self.balance / current_price
+                position_size = 1 #self.balance / current_price
                 self.positions.append({
                     'direction': 'sell',
                     'entry_price': current_price,
                     'size': position_size
                 })
-                self.balance = 0
+                # self.balance = 0
+                logger.info(f"Sell action executed at price {current_price}")
 
         # Initialize reward
         reward = 0.0
@@ -244,18 +265,18 @@ class ForexTradingEnv(gym.Env):
         # Get next observation
         obs = self._next_observation()
 
+        # Convert tensors to CPU for logging or NumPy conversion
+        # obs_cpu = obs.cpu().numpy()
+
         # Additional info
         info = {}
         truncated = False
+        logger.info(f"Step {self.current_step}: Reward: {reward}, Net Worth: {self.net_worth}")
         return obs, reward, done, truncated, info
 
     def render(self, mode='human'):
         profit = self.net_worth - self.initial_balance
-        print(f'Step: {self.current_step}')
-        print(f'Balance: {self.balance:.2f}')
-        print(f'Positions: {len(self.positions)}')
-        print(f'Net Worth: {self.net_worth:.2f}')
-        print(f'Profit: {profit:.2f}')
+        logger.info(f'Step: {self.current_step}, Balance: {self.balance:.2f}, Net Worth: {self.net_worth:.2f}, Profit: {profit:.2f}')
 
 # %%
 env = ForexTradingEnv(data, sequence_length)
@@ -269,7 +290,9 @@ model = PPO(
 )
 
 # Train the agent
+logger.info("Starting model training...")
 model.learn(total_timesteps=100000)
+logger.info("Model training complete")
 
 # Evaluate the agent
 observation, info = env.reset()
@@ -283,5 +306,6 @@ while not done:
 
 # Save the model
 model.save('ppo_forex_transformer')
+logger.info("Model saved to 'ppo_forex_transformer'")
 
 # %%
