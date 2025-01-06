@@ -1,5 +1,7 @@
 # %%
 import logging
+import glob
+import os
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import PPO
 import gymnasium as gym
@@ -10,40 +12,45 @@ import torch.nn as nn
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
+from src.util.plot_chart import TradingChart
+from src.util.log_render import render_to_file
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger.info(f"Using device: {device}")
+
 # %%
-data = pd.read_csv("/home/paulg/github/tradesformer/data/split/AUDUSD/weekly/AUDUSD_2022_1.csv")
+def load_data(csv_file,features):
+    data = pd.read_csv(csv_file)
 
-features = ['open', 'high', 'low', 'close', 'vol', 'macd','boll_ub','boll_lb','rsi_30','dx_30','close_30_sma','close_60_sma']
-sequence_length = len(features)  # Number of past observations to consider
-scaler = MinMaxScaler()
-data[features] = scaler.fit_transform(data[features])
+    
+    sequence_length = len(features)  # Number of past observations to consider
+    scaler = MinMaxScaler()
+    data[features] = scaler.fit_transform(data[features])
 
-# Check for NaN or Inf values after scaling
-if data[features].isnull().values.any() or np.isinf(data[features].values).any():
-    logger.error("Data contains NaN or Inf values after scaling")
-    raise ValueError("Data contains NaN or Inf values after scaling")
+    # Check for NaN or Inf values after scaling
+    if data[features].isnull().values.any() or np.isinf(data[features].values).any():
+        logger.error("Data contains NaN or Inf values after scaling")
+        raise ValueError("Data contains NaN or Inf values after scaling")
 
-# Reset index
-data = data.reset_index()
-logger.info("Data loaded and preprocessed successfully")
-# %%
-def create_sequences(df, seq_length):
-    logger.info("Creating sequences...")
-    sequences = []
-    for i in range(len(df) - seq_length):
-        seq = df.iloc[i:i+seq_length][features].values
-        sequences.append(seq)
-    logger.info("Sequences created successfully")
-    return np.array(sequences)
+    # Reset index
+    data = data.reset_index()
+    logger.info("Data loaded and preprocessed successfully")
 
-sequences = create_sequences(data, sequence_length)
+    def create_sequences(df, seq_length):
+        logger.info("Creating sequences...")
+        sequences = []
+        for i in range(len(df) - seq_length):
+            seq = df.iloc[i:i+seq_length][features].values
+            sequences.append(seq)
+        logger.info("Sequences created successfully")
+        return np.array(sequences)
+
+    sequences = create_sequences(data, sequence_length)
+    return data
 
 class TimeSeriesTransformer(nn.Module):
     def __init__(self, input_size, embed_dim, num_heads, num_layers, dropout=0.1):
@@ -121,20 +128,14 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
         return x
 
 # %%
-policy_kwargs = dict(
-    features_extractor_class=CustomCombinedExtractor,
-    features_extractor_kwargs=dict(),
-    net_arch=[dict(pi=[64, 64], vf=[64, 64])],
-    activation_fn=nn.ReLU
-)
-
 class ForexTradingEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, data, sequence_length, profit_target_ratio=0.01, stop_loss_ratio=0.005):
+    def __init__(self, data, features, profit_target_ratio=0.01, stop_loss_ratio=0.005):
         super(ForexTradingEnv, self).__init__()
         self.data = data
-        self.sequence_length = sequence_length
+        self.features = features
+        self.sequence_length = len(features)
         self.max_steps = len(self.data) - self.sequence_length - 1
         self.current_step = 0
 
@@ -146,7 +147,7 @@ class ForexTradingEnv(gym.Env):
 
         self.profit_target_ratio = profit_target_ratio
         self.stop_loss_ratio = stop_loss_ratio
-
+        self.ticket_id = 0
         self.action_space = spaces.Discrete(3)
 
         obs_shape = (self.sequence_length, len(features))
@@ -278,34 +279,127 @@ class ForexTradingEnv(gym.Env):
         profit = self.net_worth - self.initial_balance
         logger.info(f'Step: {self.current_step}, Balance: {self.balance:.2f}, Net Worth: {self.net_worth:.2f}, Profit: {profit:.2f}')
 
-# %%
-env = ForexTradingEnv(data, sequence_length)
-model = PPO(
-    'MlpPolicy',
-    env,
-    verbose=1,
-    policy_kwargs=policy_kwargs,
-    learning_rate=1e-4,  # Reduced learning rate
-    max_grad_norm=0.5    # Gradient clipping
-)
-
-# Train the agent
-logger.info("Starting model training...")
-model.learn(total_timesteps=100000)
-logger.info("Model training complete")
-
-# Evaluate the agent
-observation, info = env.reset()
-done = False
-
-while not done:
-    action, _states = model.predict(observation)
-    observation, reward, terminated, truncated, info = env.step(action)
-    done = terminated or truncated
-    env.render()
-
-# Save the model
-model.save('ppo_forex_transformer')
-logger.info("Model saved to 'ppo_forex_transformer'")
+    def render1(self, mode='human', title=None, **kwargs):
+        # Render the environment to the screen
+        if mode in ('human', 'file'):
+            printout = False
+            if mode == 'human':
+                printout = True
+            pm = {
+                "log_header": self.log_header,
+                "log_filename": self.log_filename,
+                "printout": printout,
+                "balance": self.balance,
+                "balance_initial": self.balance_initial,
+                "transaction_close_this_step": self.transaction_close_this_step,
+                "done_information": self.done_information
+            }
+            render_to_file(**pm)
+            if self.log_header: self.log_header = False
+        elif mode == 'graph' and self.visualization:
+            print('plotting...')
+            p = TradingChart(self.df, self.transaction_history)
+            p.plot()
+            
 
 # %%
+def single_csv_training(csv_file):
+    policy_kwargs = dict(
+        features_extractor_class=CustomCombinedExtractor,
+        features_extractor_kwargs=dict(),
+        net_arch=[dict(pi=[64, 64], vf=[64, 64])],
+        activation_fn=nn.ReLU
+    )
+    data, sequence_length = load_data(csv_file)
+    env = ForexTradingEnv(data, sequence_length)
+    model = PPO(
+        'MlpPolicy',
+        env,
+        verbose=1,
+        policy_kwargs=policy_kwargs,
+        learning_rate=1e-4,  # Reduced learning rate
+        max_grad_norm=0.5    # Gradient clipping
+    )
+
+    # Train the agent
+    logger.info("Starting model training...")
+    model.learn(total_timesteps=100000)
+    logger.info("Model training complete")
+
+def eval(env):
+    # Evaluate the agent
+    observation, info = env.reset()
+    done = False
+
+    while not done:
+        action, _states = model.predict(observation)
+        observation, reward, terminated, truncated, info = env.step(action)
+        done = terminated or truncated
+        env.render()
+
+    # Save the model
+    model.save('ppo_forex_transformer')
+    logger.info("Model saved to 'ppo_forex_transformer'")
+
+
+def multiply_csv_files_traning(data_directory,features):
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    # Define the directory containing the CSV files
+    
+    # Get a list of all CSV files in the folder
+    csv_files = glob.glob(os.path.join(data_directory, "*.csv"))
+    # Set up PPO model parameters
+    policy_kwargs = dict(
+        features_extractor_class=CustomCombinedExtractor,
+        features_extractor_kwargs=dict(),
+        net_arch=[dict(pi=[64, 64], vf=[64, 64])],
+        activation_fn=nn.ReLU
+    )
+
+
+    # Initial model training
+    model = PPO(
+        'MlpPolicy',
+        env,
+        verbose=1,
+        policy_kwargs=policy_kwargs,
+        learning_rate=1e-4,  # Reduced learning rate
+        max_grad_norm=0.5    # Gradient clipping
+    )
+
+    # Initialize the batch counter
+    batch_num = 1
+
+    # Loop through each CSV file for training
+    for file in csv_files:
+        # Read the CSV file
+        data = pd.read_csv(file)
+        # Preprocess the data (scaling, etc.)
+        data[features] = scaler.fit_transform(data[features])
+
+        # Reset the environment for the new file
+        env = ForexTradingEnv(data, features)
+
+        # Train the model on the current file
+        logger.info(f"Starting training on file {file} (Batch {batch_num})")
+
+        model.learn(total_timesteps=10000)  # Adjust the number of timesteps per batch as needed
+        
+        # Save the model after training on this file
+        model_filename = f'/home/paulg/github/tradesformer/data/model/ppo_forex_transformer_batch_{batch_num}.zip'
+        model.save(model_filename)
+        logger.info(f"Model saved as {model_filename}")
+
+        # Increment the batch number for the next file
+        batch_num += 1
+
+        # Reload the model if needed, for the next batch (optional, if you want to continue learning)
+        model = PPO.load(model_filename, env=env)
+        logger.info(f"Model loaded from {model_filename}")
+        
+    logger.info("Finished training on all files")
+# %%
+csv_file = "/home/paulg/github/tradesformer/data/split/AUDUSD/weekly/AUDUSD_2022_1.csv"
+features = ['open', 'high', 'low', 'close', 'vol', 'macd','boll_ub','boll_lb','rsi_30','dx_30','close_30_sma','close_60_sma']
+data_directory = "/home/paulg/github/tradesformer/data/split/AUDUSD/weekly"
