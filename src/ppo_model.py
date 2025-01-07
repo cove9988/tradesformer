@@ -22,8 +22,10 @@ logger = logging.getLogger(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger.info(f"Using device: {device}")
 
+features = ['open', 'high', 'low', 'close', 'vol', 'macd','boll_ub','boll_lb','rsi_30','dx_30','close_30_sma','close_60_sma']
+sequence_length = len(features)
 # %%
-def load_data(csv_file,features):
+def load_data(csv_file):
     data = pd.read_csv(csv_file)
 
     
@@ -101,7 +103,6 @@ class TimeSeriesTransformer(nn.Module):
 class CustomCombinedExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Box):
         super(CustomCombinedExtractor, self).__init__(observation_space, features_dim=64)
-        self.sequence_length = sequence_length
         num_features = observation_space.shape[1]  # Should be 10 in this case
 
         # Ensure that embed_dim is divisible by num_heads
@@ -304,14 +305,15 @@ class ForexTradingEnv(gym.Env):
 
 # %%
 def single_csv_training(csv_file):
+    data = load_data(csv_file)
+    
     policy_kwargs = dict(
         features_extractor_class=CustomCombinedExtractor,
         features_extractor_kwargs=dict(),
         net_arch=[dict(pi=[64, 64], vf=[64, 64])],
         activation_fn=nn.ReLU
     )
-    data, sequence_length = load_data(csv_file)
-    env = ForexTradingEnv(data, sequence_length)
+    env = ForexTradingEnv(data, features)
     model = PPO(
         'MlpPolicy',
         env,
@@ -326,8 +328,9 @@ def single_csv_training(csv_file):
     model.learn(total_timesteps=100000)
     logger.info("Model training complete")
 
-def eval(env):
+def eval(model_file,env):
     # Evaluate the agent
+    model = PPO.load(model_file, env=env)
     observation, info = env.reset()
     done = False
 
@@ -338,7 +341,6 @@ def eval(env):
         env.render()
 
     # Save the model
-    model.save('ppo_forex_transformer')
     logger.info("Model saved to 'ppo_forex_transformer'")
 
 
