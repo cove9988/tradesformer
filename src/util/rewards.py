@@ -1,4 +1,4 @@
-from action_enum import ActionEnum
+from src.util.action_enum import ActionEnum
 class RewardCalculator:
     def __init__(self, df, cf, shaping_reward, stop_loss, profit_taken, backward_window):
         self.df = df
@@ -14,11 +14,11 @@ class RewardCalculator:
         _point = self.cf.symbol(self.cf.env_parameters("asset_col"), "point")
         for _step in range(self.backward_window, len(self.df)):
             buy_sl, buy_pt, sell_sl, sell_pt = False, False, False, False
-            _c = self.df.iloc[_step]["Close"]
+            _c = self.df.iloc[_step]["close"]
             i = _step + 1
             while i < len(self.df):
-                _rr = {ActionEnum.BUY: 0.0, ActionEnum.SELL: 0.0, ActionEnum.HOLD: 0.0, "Step": 0}
-                _h, _l = self.df.iloc[i][["High", "Low"]]
+                _rr = {ActionEnum.BUY: 0.0, ActionEnum.SELL: 0.0, ActionEnum.HOLD: 0.0, "step": 0}
+                _h, _l = self.df.iloc[i][["high", "low"]]
                 _sl_price = self.stop_loss / _point
                 _pt_price = self.profit_taken / _point
                 if not buy_sl and not buy_pt:

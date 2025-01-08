@@ -1,16 +1,14 @@
 from datetime import datetime
-from action_enum import ActionEnum
+from src.util.action_enum import ActionEnum
 class TransactionManager:
-    def __init__(self, cf, balance, asset, stop_loss, profit_taken):
+    def __init__(self, cf, balance, symbol, stop_loss, profit_taken):
         self.cf = cf
         self.balance = balance
-        self.asset = asset
+        self.symbol = symbol
         self.stop_loss = stop_loss
         self.profit_taken = profit_taken
         self.transaction_live = []
         self.transaction_history = []
-        self.transaction_limit_order = []
-        self.transaction_open_this_step = []
         self.transaction_close_this_step = []
         self.current_holding = 0
         self.ticket_id = 0
@@ -30,7 +28,7 @@ class TransactionManager:
     def _close_order(self, df, current_step, done):
         closed = True
         for tr in self.transaction_live:
-            _point = self.cf.symbol(self.asset, "point")
+            _point = self.cf.symbol(self.symbol, "point")
             _day = df.iloc[current_step]["weekday"]
             if tr["Type"] == ActionEnum.BUY:
                 _sl_price = tr["ActionPrice"] + tr["SL"] / _point
