@@ -308,7 +308,12 @@ class ForexTradingEnv(gym.Env):
         # Convert tensors to CPU for logging or NumPy conversion
         # obs_cpu = obs.cpu().numpy()
         if done: 
-            logger.info(f'total position {len(self.positions)} --- balance: {self.balance}')
+            buy = 0
+            for position in self.positions:
+                if position["Type"] == "Buy":
+                    buy +=1
+                    
+            logger.info(f'Position:{len(self.positions)}/Buy:{buy}---Balance: {self.balance}')
         # Additional info
         info = {}
         truncated = False
