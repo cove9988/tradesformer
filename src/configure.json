@@ -17,7 +17,7 @@
             "close_60_sma"
         ],
         "over_night_cash_penalty": 5,
-        "balance": 10000,
+        "balance": 1000,
         "symbol_col": "symbol", 
         "time_col": "time",
         "random_start": true,
