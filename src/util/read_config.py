@@ -7,7 +7,7 @@ class EnvConfig():
             config_file path/file.json
 
     """
-    def __init__(self,config_file ='./env/config/gdbusd-test-1.json'):
+    def __init__(self,config_file):
         self.config = {}
         with open(config_file) as j: 
             self.config = json.load(j)
@@ -50,9 +50,10 @@ class EnvConfig():
             return self.config["trading_hour"]
     
 if __name__ == '__main__':    
-    cf = EnvConfig()
+    env_config_file ='/home/paulg/github/tradesformer/src/configure.json'
+    cf = EnvConfig(env_config_file)
     print(f'{cf.env_parameters()}')
     print(cf.env_parameters("observation_list"))
-    print(f'asset_col: {cf.env_parameters()["asset_col"]}')
-    print(cf.symbol(asset="GBPUSD")["point"])
-    print(f'trading hour new york: {cf.trading_hour("new york")}')
+    print(f'symbol_col: {cf.env_parameters()["symbol_col"]}')
+    print(cf.symbol("GBPUSD")["point"])
+    print(f'trading hour new york: {cf.trading_hour("New York")}')

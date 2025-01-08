@@ -1,10 +1,10 @@
 {
     "env": {
         "observation_list": [
-            "Open",
-            "High",
-            "Low",
-            "Close",
+            "open",
+            "high",
+            "low",
+            "close",
             "minute",
             "hour",
             "day",
@@ -18,13 +18,13 @@
         ],
         "over_night_cash_penalty": 5,
         "balance": 10000,
-        "asset_col": "symbol",
+        "symbol_col": "symbol", 
         "time_col": "time",
         "random_start": true,
-        "log_filename": "./data/log/log_",
+        "log_filename": "./data/log/log_{symbol}",
         "do_nothing": 0.1,
-        "title":"GBPUSD EURUSD 5M",
-        "description":"testing sma, rsi and boll input in weekly with GBPUSD EURUSD",
+        "title":"{symbol} 5M",
+        "description":"sma, rsi and boll input in weekly with {symbol}",
         "shaping_reward": 0.1,
         "forward_window": 12,
         "backward_window": 48,
@@ -34,26 +34,41 @@
         "GBPUSD": {
             "point": 100000,
             "max_spread": 50,
-            "transaction_fee": -5,
-            "over_night_penalty": -10,
-            "stop_loss_max": -200,
-            "profit_taken_max": 800,
+            "transaction_fee": -20,
+            "over_night_penalty": -50,
+            "stop_loss_max": -300,
+            "profit_taken_max": 600,
             "max_current_holding": 1,
+            "good_position_encourage": 5,
             "limit_order": false,
             "limit_order_expiration": 5
         },
         "EURUSD": {
             "point": 100000,
             "max_spread": 50,
-            "transaction_fee": -10,
-            "over_night_penalty": -10,
+            "transaction_fee": -15,
+            "over_night_penalty": -50,
             "stop_loss_max": -200,
-            "profit_taken_max": 2500,
+            "profit_taken_max": 500,
             "max_current_holding": 10,
+            "good_position_encourage": 5,
             "limit_order": false,
             "limit_order_expiration": 5
 
-        }
+        },
+        "AUDUSD": {
+            "point": 100000,
+            "max_spread": 50,
+            "transaction_fee": -15,
+            "over_night_penalty": -50,
+            "stop_loss_max": -200,
+            "profit_taken_max": 500,
+            "max_current_holding": 10,
+            "good_position_encourage": 5,
+            "limit_order": false,
+            "limit_order_expiration": 5
+
+        }        
     },
     "trading_hour":{
         "Sydney":{"from":0,"to":0},
