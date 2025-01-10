@@ -6,12 +6,16 @@ import time
 import datetime
 from stable_baselines3 import PPO
 from src.ppo_model import ForexTradingEnv, load_data
+import logging
+logging.basicConfig(level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 features = ['open', 'high', 'low', 'close', 'minute', 'hour', 'day', 'macd', 'boll_ub', 'boll_lb', 'rsi_30', 'dx_30', 'close_30_sma', 'close_60_sma']
 model_file = '/home/paulg/github/tradesformer/data/model/AUDUSD/weekly/AUDUSD_2023_66.zip'
 # csv_file = "/home/paulg/github/tradesformer/data/split/EURUSD/weekly/EURUSD_2024_103.csv"
-data_directory = "/home/paulg/github/tradesformer/data/split/EURUSD/weekly"
+data_directory = "/home/paulg/github/tradesformer/data/split/AUDUSD/weekly"
 csv_files = glob.glob(os.path.join(data_directory, "*.csv"))
-run_time = 3
+run_time = 10
 _run = 1
 for file in csv_files :
     if _run > run_time: break
