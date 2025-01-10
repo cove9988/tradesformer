@@ -148,7 +148,7 @@ class ForexTradingEnv(gym.Env):
         self.sequence_length = len(features)
         self.max_steps = len(self.data) - self.sequence_length - 1
         self.current_step = 0
-        self.ticket_id = 1
+        self.ticket_id = 0
         self.balance_initial = cf.env_parameters("balance")
         self.symbol_col = ASSET
         self.shaping_reward = cf.env_parameters("shaping_reward")
@@ -185,7 +185,7 @@ class ForexTradingEnv(gym.Env):
         self.balance = self.balance_initial
         self.positions = []
         self.total_profit = 0.0
-        self.ticket_id = 1
+        self.ticket_id = 0
         # self.current_step = np.random.randint(self.sequence_length, self.max_steps)
         self.current_step = self.sequence_length
         # logger.info(f"Environment reset. Starting at step {self.current_step}")
@@ -224,6 +224,7 @@ class ForexTradingEnv(gym.Env):
             position["ClosePrice"] = stop_loss_price
             position["Status"] = 1
             position["CloseStep"] = self.current_step
+            position["pips"] = reward
             self.balance += 100
             # logger.info(f"Step {self.current_step}: Reward: {reward}, Close: SL Step: {self.current_step - position['ActionStep']}")    
         # Check for profit target hit
@@ -234,6 +235,7 @@ class ForexTradingEnv(gym.Env):
             position["ClosePrice"] = profit_target_price
             position["Status"] = 1
             position["CloseStep"] = self.current_step
+            position["pips"] = reward
             self.balance += 100
             # logger.info(f"Step {self.current_step}: Reward: {reward}, Close: PT Step: {self.current_step - position['ActionStep']}")    
         else: 
@@ -243,6 +245,7 @@ class ForexTradingEnv(gym.Env):
                 position["ClosePrice"] = _c
                 position["Status"] = 2 
                 position["CloseStep"] = self.current_step
+                position["pips"] = reward
                 # logger.info(f"Step {self.current_step}: Reward: {reward}, Close: End Step: {self.current_step - position['ActionStep']}")    
                 self.balance += 100
             else:
@@ -290,6 +293,7 @@ class ForexTradingEnv(gym.Env):
                 "Status": 0,
                 "LimitStep": 0,
                 "ActionStep":self.current_step,
+                "pips":0,
                 "CloseStep":-1,
             }
             self.positions.append(position)                    
@@ -323,29 +327,27 @@ class ForexTradingEnv(gym.Env):
         truncated = False
         return obs, reward, done, truncated, info
 
-    def render(self, mode='human'):
-        logger.info(f'Step: {self.current_step}, Balance: {self.balance:.2f}')
-
-    def render1(self, mode='human', title=None, **kwargs):
+    def render(self, mode='human', title=None, **kwargs):
         # Render the environment to the screen
         if mode in ('human', 'file'):
+            log_header = True
             printout = False
             if mode == 'human':
                 printout = True
             pm = {
-                "log_header": self.log_header,
-                "log_filename": self.log_filename,
+                "log_header": log_header,
+                "log_filename": "./data/log/log_" + self.symbol_col + '.csv',
                 "printout": printout,
                 "balance": self.balance,
                 "balance_initial": self.balance_initial,
-                "transaction_close_this_step": self.transaction_close_this_step,
-                "done_information": self.done_information
+                "transaction_close_this_step": self.positions,
+                "done_information": False
             }
             render_to_file(**pm)
-            if self.log_header: self.log_header = False
-        elif mode == 'graph' and self.visualization:
+            if log_header: log_header = False
+        elif mode == 'graph' :
             print('plotting...')
-            p = TradingChart(self.df, self.transaction_history)
+            p = TradingChart(self.data, self.positions)
             p.plot()
             
 

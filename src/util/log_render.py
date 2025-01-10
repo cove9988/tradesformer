@@ -1,32 +1,45 @@
-import os
-
 def render_to_file(**kwargs):
-    log_header = kwargs.get("log_header", False)
-    log_filename = kwargs.get("log_filename", "./data/log/log_")
-    # printout = kwargs.get("printout", False)
-    # balance = kwargs.get("balance")
-    # balance_initial = kwargs.get("balance_initial")
-    positions = kwargs.get("positions", [])
-
-    step = kwargs.get("step",0)
-
+    log_header = kwargs.get("log_header",False)
+    log_filename=kwargs.get("log_filename","")
+    printout=kwargs.get("printout",False)
+    balance=kwargs.get("balance")
+    balance_initial=kwargs.get("balance_initial")
+    transaction_close_this_step=kwargs.get("transaction_close_this_step",[])
+    done_information=kwargs.get("done_information","")
+    profit = balance - balance_initial
     tr_lines = ""
+    tr_lines_comma = ""
     _header = ''
-
-    os.makedirs(os.path.dirname(log_filename), exist_ok=True)
-
+    _header_comma = ''
     if log_header:
-        _header = f'{"tranactions_id":10},{"currency_pair":8},{"direction":8},{"open_step":16},{"open_price":16},{"maxDD":10},{"close_step":16},{"close_price":16},{"pips":8},{"close_reason":6},{"duration":10}\n'
+        _header = f'{"Ticket":>8}{"Symbol":8}{"Type":8}{"ActionTime":>20} \
+                            {"ActionPrice":14}{"MaxDD":8}{"CloseTime":>20}{"ClosePrice":14} \
+                            {"Reward":8}{"SL":8}{"PT":8}{"DateDuration":20}{"Status":8}\n'
 
-    for _tr in positions:
-        if _tr["close_step"] + 1 == step:
-            tr_lines += f'{_tr["tranactions_id"]:10},{_tr["currency_pair"]:8},{_tr["direction"]:8},{_tr["open_step"]:16},{_tr["open_price"]:11.5f},{_tr["maxDD"]:8.2f},{_tr["close_step"]:16},{_tr["close_price"]:11.5f},{_tr["pips"]:6.2f},{_tr["close_reason"]:6},{_tr["duration"]:10}\n'
+        _header_comma = f'{"Ticket,Symbol,Type,ActionTime,ActionPrice,MaxDD,CloseTime,ClosePrice,Reward,SL,PT,DateDuration,Status"}\n'
+    if transaction_close_this_step:
+        for _tr in transaction_close_this_step:
+            if _tr["CloseStep"] >=0:
+                tr_lines += f'{_tr["Ticket"]:>8} {_tr["Symbol"]:8} {_tr["Type"]:>4} {_tr["ActionTime"]:16} \
+                    {_tr["ActionPrice"]:6.5f} {_tr["MaxDD"]:8} {_tr["CloseTime"]:16} {_tr["ClosePrice"]:6.5f} \
+                    {_tr["Reward"]:4.0f} {_tr["SL"]:4.0f} {_tr["PT"]:4.0f} {_tr["DateDuration"]:20} {_tr["Status"]:8}\n'
 
+                tr_lines_comma += f'{_tr["Ticket"]},{_tr["Symbol"]},{_tr["Type"]},{_tr["ActionTime"]}, \
+                    {_tr["ActionPrice"]:6.5f},{_tr["MaxDD"]},{_tr["CloseTime"]},{_tr["ClosePrice"]:6.5f}, \
+                    {_tr["Reward"]:4.0f},{_tr["SL"]:4.0f},{_tr["PT"]:4.0f},{_tr["DateDuration"]},{_tr["Status"]}\n'
 
-    if not os.path.exists(log_filename):
+    log = _header_comma + tr_lines_comma
+    # log = f"Step: {current_step}   Balance: {balance}, Profit: {profit} \
+    #     MDD: {max_draw_down_pct}\n{tr_lines_comma}\n"
+    if done_information:
+        log += done_information
+    if log:
         with open(log_filename, 'a+') as _f:
-            _f.write(_header + tr_lines)
-    else:
-        with open(log_filename, 'a+') as _f:
-            _f.write(tr_lines)
-3
+            _f.write(log)
+            _f.close()
+
+    tr_lines += _header
+    if printout and tr_lines:
+        print(tr_lines)
+        if done_information:
+            print(done_information)
