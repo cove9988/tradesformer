@@ -19,7 +19,7 @@ Conclusion
 References
 Introduction
 In this implementation, we'll:
-
+![sample](./doc/AUDUSD-20250110213405.png)
 Combine PPO RL with a Transformer Model: Integrate a transformer into the PPO agent's policy network to process sequential market data.
 Develop a Custom Gym Environment: Simulate the Forex trading environment with appropriate state representation and reward structure.
 Train and Evaluate the Agent: Train the hybrid agent and assess its performance.
