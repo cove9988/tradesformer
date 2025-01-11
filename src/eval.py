@@ -20,8 +20,7 @@ _run = 1
 for file in csv_files :
     if _run > run_time: break
     # Read the CSV file
-    data = pd.read_csv(file)
-    env = ForexTradingEnv(data,features)
+    env = ForexTradingEnv(file,features)
     model = PPO.load(model_file, env=env)
 # %%
     observation, info = env.reset()
