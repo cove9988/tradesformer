@@ -1,3 +1,4 @@
+import os
 def render_to_file(**kwargs):
     log_header = kwargs.get("log_header",False)
     log_filename=kwargs.get("log_filename","")
@@ -34,6 +35,7 @@ def render_to_file(**kwargs):
     if done_information:
         log += done_information
     if log:
+        # os.makedirs(log_filename, exist_ok=True)
         with open(log_filename, 'a+') as _f:
             _f.write(log)
             _f.close()
