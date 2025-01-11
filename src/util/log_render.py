@@ -13,21 +13,21 @@ def render_to_file(**kwargs):
     _header = ''
     _header_comma = ''
     if log_header:
-        _header = f'{"Ticket":>8}{"Symbol":8}{"Type":8}{"ActionTime":>20} \
-                            {"ActionPrice":14}{"MaxDD":8}{"CloseTime":>20}{"ClosePrice":14} \
-                            {"Reward":8}{"SL":8}{"PT":8}{"DateDuration":20}{"Status":8}\n'
+        _header = f'{"Ticket":>8}{"Type":4}{"ActionTime":>16}{"ActionStep":>16} \
+                            {"ActionPrice":12}{"CloseTime":>16}{"ClosePrice":12} \
+                            {"pips":4}{"SL":4}{"PT":4}{"CloseStep":8}{"DeltaStep":8}\n'
 
-        _header_comma = f'{"Ticket,Symbol,Type,ActionTime,ActionPrice,MaxDD,CloseTime,ClosePrice,Reward,SL,PT,DateDuration,Status"}\n'
+        _header_comma = f'{"Ticket,Type,ActionTime,ActionStep,ActionPrice,CloseTime,ClosePrice,pips,SL,PT,CloseStep,DeltaStep"}\n'
     if transaction_close_this_step:
         for _tr in transaction_close_this_step:
             if _tr["CloseStep"] >=0:
-                tr_lines += f'{_tr["Ticket"]:>8} {_tr["Symbol"]:8} {_tr["Type"]:>4} {_tr["ActionTime"]:16} \
-                    {_tr["ActionPrice"]:6.5f} {_tr["MaxDD"]:8} {_tr["CloseTime"]:16} {_tr["ClosePrice"]:6.5f} \
-                    {_tr["Reward"]:4.0f} {_tr["SL"]:4.0f} {_tr["PT"]:4.0f} {_tr["DateDuration"]:20} {_tr["Status"]:8}\n'
+                tr_lines += f'{_tr["Ticket"]:>8} {_tr["Type"]:>4} {_tr["ActionTime"]:16} {_tr["ActionStep"]:16} \
+                    {_tr["ActionPrice"]:6.5f} {_tr["CloseTime"]:16} {_tr["ClosePrice"]:6.5f} \
+                    {_tr["pips"]:4.0f} {_tr["SL"]:4.0f} {_tr["PT"]:4.0f} {_tr["CloseStep"]:8} {_tr["DeltaStep"]:8}\n'
 
-                tr_lines_comma += f'{_tr["Ticket"]},{_tr["Symbol"]},{_tr["Type"]},{_tr["ActionTime"]}, \
-                    {_tr["ActionPrice"]:6.5f},{_tr["MaxDD"]},{_tr["CloseTime"]},{_tr["ClosePrice"]:6.5f}, \
-                    {_tr["Reward"]:4.0f},{_tr["SL"]:4.0f},{_tr["PT"]:4.0f},{_tr["DateDuration"]},{_tr["Status"]}\n'
+                tr_lines_comma += f'{_tr["Ticket"]:>8},{_tr["Type"]:>4},{_tr["ActionTime"]:>16},{_tr["ActionStep"]:16}, \
+                    {_tr["ActionPrice"]:6.5f},{_tr["CloseTime"]:16},{_tr["ClosePrice"]:6.5f}, \
+                    {_tr["pips"]:4.0f},{_tr["SL"]:4.0f},{_tr["PT"]:4.0f},{_tr["CloseStep"]:8},{_tr["DeltaStep"]:8}\n'
 
     log = _header_comma + tr_lines_comma
     # log = f"Step: {current_step}   Balance: {balance}, Profit: {profit} \

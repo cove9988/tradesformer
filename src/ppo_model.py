@@ -236,7 +236,8 @@ class ForexTradingEnv(gym.Env):
             position["ClosePrice"] = stop_loss_price
             position["Status"] = 1
             position["CloseStep"] = self.current_step
-            position["pips"] = reward
+            position["pips"] += reward
+            position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 #return deposit
             if self.logger_show: logger.info(f"Step {self.current_step}: Reward: {reward}, Close: SL Step: {self.current_step - position['ActionStep']}")
         # Check for profit target hit
@@ -247,7 +248,8 @@ class ForexTradingEnv(gym.Env):
             position["ClosePrice"] = profit_target_price
             position["Status"] = 1
             position["CloseStep"] = self.current_step
-            position["pips"] = reward
+            position["pips"] += reward
+            position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100
             if self.logger_show: logger.info(f"Step {self.current_step}: Reward: {reward}, Close: PT Step: {self.current_step - position['ActionStep']}")
         else:
@@ -257,7 +259,8 @@ class ForexTradingEnv(gym.Env):
                 position["ClosePrice"] = _c
                 position["Status"] = 2
                 position["CloseStep"] = self.current_step
-                position["pips"] = reward
+                position["pips"] += reward
+                position["DeltaStep"] = self.current_step - position["ActionStep"]
                 if self.logger_show: logger.info(f"Step {self.current_step}: Reward: {reward}, Close: End Step: {self.current_step - position['ActionStep']}")
                 self.balance += 100
             else:
@@ -266,10 +269,11 @@ class ForexTradingEnv(gym.Env):
                     reward = self.good_position_encourage if delta >=0 else -self.good_position_encourage
                 elif direction == "Sell":
                     reward = -self.good_position_encourage if delta >=0 else self.good_position_encourage
-        if position["Status"] == 0: # not close yet
-            position["PT"] += reward
-            position["SL"] += abs(reward)
-            position["Reward"] += reward
+
+                position["PT"] += reward 
+                position["SL"] += reward if position["SL"] <= self.stop_loss else self.stop_loss
+                    
+                position["Reward"] += reward
 
         return reward
 
@@ -306,9 +310,10 @@ class ForexTradingEnv(gym.Env):
                 "DateDuration": _day,
                 "Status": 0,
                 "LimitStep": 0,
+                "pips":self.transaction_fee,
                 "ActionStep":self.current_step,
-                "pips":0,
                 "CloseStep":-1,
+                "DeltaStep" : 0
             }
             self.positions.append(position)
             reward = self.transaction_fee #open cost
@@ -348,7 +353,7 @@ class ForexTradingEnv(gym.Env):
             printout = False
             if mode == 'human':
                 printout = True
-            log_file = self.csv_file.replace("split/", "log/").replace(".csv", ".log")
+            log_file = self.csv_file.replace("split/", "log/")
             pm = {
                 "log_header": log_header,
                 "log_filename": log_file,
@@ -361,8 +366,6 @@ class ForexTradingEnv(gym.Env):
             render_to_file(**pm)
             if log_header: log_header = False
         elif mode == 'graph' :
-            print('plotting...')
-            log_file = self.csv_file.replace("split/", "log/").replace(".csv", ".log")
             p = TradingChart(self.csv_file, self.positions)
             p.plot()
 
