@@ -67,3 +67,52 @@ class RewardCalculator:
 
             _rr["Step"] = _step
             self.reward_box.append(_rr)
+
+
+def optimize_pt_sl(position, close_price, position_price, atr, action_signal, pt, sl):
+    K, alpha, beta, gamma, delta = 1.5, 0.5, 0.8, 1.5, 0.2  # Dynamic tuning factors
+
+    if position == "BUY":
+        price_trend = close_price - position_price
+
+        if price_trend > 0:  # Upward trend
+            if action_signal == "BUY":
+                # Increase PT and tighten SL
+                pt = max(pt, close_price + K * atr)
+                sl = max(sl, close_price - alpha * atr)
+            else:  # Action signal is SELL
+                # Tighten SL and reset PT
+                sl = close_price - delta * atr
+                pt = close_price + beta * atr
+        else:  # Downward trend
+            # Reduce PT and widen SL
+            pt = min(pt, close_price + beta * atr)
+            sl = min(sl, close_price - gamma * atr)
+
+    elif position == "SELL":
+        # Similar logic for SELL positions (inverse of BUY)
+        price_trend = position_price - close_price
+
+        if price_trend > 0:  # Downward trend
+            if action_signal == "SELL":
+                pt = max(pt, close_price - K * atr)
+                sl = max(sl, close_price + alpha * atr)
+            else:  # Action signal is BUY
+                sl = close_price + delta * atr
+                pt = close_price - beta * atr
+        else:  # Upward trend
+            pt = min(pt, close_price - beta * atr)
+            sl = min(sl, close_price + gamma * atr)
+
+    return pt, sl
+
+pt, sl = optimize_pt_sl(
+    position="BUY",
+    close_price=0.7520,
+    position_price=0.7500,
+    atr=0.0015,
+    action_signal="BUY",
+    pt=0.7550,
+    sl=0.7480
+)
+print(f"Optimized PT: {pt}, Optimized SL: {sl}")

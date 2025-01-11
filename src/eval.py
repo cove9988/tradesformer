@@ -28,11 +28,12 @@ for file in csv_files :
     total_buy = 0
     total_sell = 0
     totoal_rewards = 0
+    mode = 'human' #'graph'
     while not done:
         action, _states = model.predict(observation)
         observation, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
-    env.render(mode = 'graph')
+    env.render(mode = mode)
     print(f'------rewards:{totoal_rewards}-----buy:{total_buy}--sell:{total_sell}------')
     _run += 1
 

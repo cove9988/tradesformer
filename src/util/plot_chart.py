@@ -23,16 +23,11 @@ class TradingChart():
             rd = tr['Reward']  
             rewards += rd
             if tr['CloseStep'] >= 0 :
-                if tr['Type'] == 'Buy' :
-                    if rd > 0 :
-                        _wlines.append([(tr['ActionTime'],tr['ActionPrice']),(tr['CloseTime'],tr['ClosePrice'])])
-                    else:
-                        _llines.append([(tr['ActionTime'],tr['ActionPrice']),(tr['CloseTime'],tr['ClosePrice'])])
-                elif tr['Type'] == 'Sell' :
-                    if rd > 0 :
-                        _wlines.append([(tr['ActionTime'],tr['ActionPrice']),(tr['CloseTime'],tr['ClosePrice'])])
-                    else:
-                        _llines.append([(tr['ActionTime'],tr['ActionPrice']),(tr['CloseTime'],tr['ClosePrice'])])
+                if rd > 0 :
+                    _wlines.append([(tr['ActionTime'],tr['ActionPrice']),(tr['CloseTime'],tr['ClosePrice'])])
+                else:
+                    _llines.append([(tr['ActionTime'],tr['ActionPrice']),(tr['CloseTime'],tr['ClosePrice'])])
+
         combined_alines = _wlines + _llines
         combined_colors = ['b'] * len(_wlines) + ['r'] * len(_llines)
         return combined_alines, combined_colors, rewards
