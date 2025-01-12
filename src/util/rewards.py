@@ -1,4 +1,4 @@
-from src.util.action_enum import ActionEnum
+from src.util.action_aggregation import ActionEnum
 class RewardCalculator:
     def __init__(self, df, cf, shaping_reward, stop_loss, profit_taken, backward_window):
         self.df = df

@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.util.action_enum import ActionEnum
+from src.util.action_aggregation import ActionEnum
 class TransactionManager:
     def __init__(self, cf, balance, symbol, stop_loss, profit_taken):
         self.cf = cf
