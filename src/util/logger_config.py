@@ -24,4 +24,6 @@ def setup_logging(asset, console_level=logging.INFO, file_level=logging.DEBUG):
     logger.addHandler(file_handler)
 
     # Optional: Avoid duplicate logs in libraries by disabling propagation
-    logging.getLogger("matplotlib").setLevel(logging.WARNING)  # Example: Suppress matplotlib logs
+    logging.getLogger("matplotlib").setLevel(logging.ERROR)  # Suppress matplotlib logs
+    logging.getLogger("torch").setLevel(logging.ERROR)  
+    logging.getLogger("mplfinance").setLevel(logging.ERROR)  
