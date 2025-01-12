@@ -9,10 +9,11 @@ from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
 logger = logging.getLogger(__name__)
 
-def multiply_csv_files_traning(data_directory,env_config_file,asset, sequence_length=24):
+def multiply_csv_files_traning(data_directory,env_config_file,asset):
     # Define the directory containing the CSV files
     cf = EnvConfig(env_config_file)
     features = cf.env_parameters("observation_list")
+    sequence_length = cf.env_parameters("backward_window")
     print(features)
     
     # Get a list of all CSV files in the folder
@@ -70,12 +71,11 @@ if __name__ == "__main__":
     asset = "AUDUSD"      
     data_directory = "/home/paulg/github/tradesformer/data/split/AUDUSD/weekly"
     env_config_file ='/home/paulg/github/tradesformer/src/configure.json'
-    sequence_length=24
+
     setup_logging(asset=asset, console_level=logging.ERROR, file_level=logging.INFO)
    
     multiply_csv_files_traning(data_directory=data_directory, 
                                env_config_file=env_config_file, 
-                               asset=asset, 
-                               sequence_length=sequence_length)
+                               asset=asset)
 
 # %%

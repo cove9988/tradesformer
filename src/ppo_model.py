@@ -143,15 +143,16 @@ class ForexTradingEnv(gym.Env):
         self.sequence_length = sequence_length 
         self.max_steps = len(self.data) - self.sequence_length - 1
         self.balance_initial = self.cf.env_parameters("balance")
-        self.symbol_col = asset
+        self.good_position_encourage=self.cf.env_parameters("good_position_encourage")
+        self.consistency_reward =self.cf.env_parameters("consistency_reward")
         self.shaping_reward = self.cf.env_parameters("shaping_reward")
+        self.symbol_col = asset
         self.stop_loss = self.cf.symbol(self.symbol_col, "stop_loss_max")
         self.profit_taken = self.cf.symbol(self.symbol_col, "profit_taken_max")
         self.point =self.cf.symbol(self.symbol_col, "point")
         self.transaction_fee=self.cf.symbol(self.symbol_col, "transaction_fee")
         self.over_night_penalty =self.cf.symbol(self.symbol_col, "over_night_penalty")
         self.max_current_holding =self.cf.symbol(self.symbol_col, "max_current_holding")
-        self.good_position_encourage=self.cf.symbol(self.symbol_col, "good_position_encourage")
         self.action_space = spaces.Discrete(3)
         # self.backward_window = self.self.self.cf.env_parameters("backward_window")
         # need to reset of following
