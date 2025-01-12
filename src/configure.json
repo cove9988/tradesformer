@@ -63,7 +63,7 @@
             "over_night_penalty": -50,
             "stop_loss_max": -400,
             "profit_taken_max": 800,
-            "max_current_holding": 10,
+            "max_current_holding": 1,
             "good_position_encourage": 2,
             "limit_order": false,
             "limit_order_expiration": 5
