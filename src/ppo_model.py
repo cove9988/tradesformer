@@ -160,6 +160,7 @@ class ForexTradingEnv(gym.Env):
         self.balance = self.balance_initial
         self.positions = []
         self.ticket_id = 0
+        self.total_rewards = 0
         self.action_aggregator =ActionAggregator()
         # self.reward_calculator = RewardCalculator(
         #     self.data, cf, self.shaping_reward, self.stop_loss, self.profit_taken, self.backward_window
@@ -182,6 +183,7 @@ class ForexTradingEnv(gym.Env):
         self.balance = self.balance_initial
         self.positions = []
         self.ticket_id = 0
+        self.total_rewards = 0
         self.action_aggregator =ActionAggregator()
         
         # self.current_step = np.random.randint(self.sequence_length, self.max_steps)
@@ -282,10 +284,11 @@ class ForexTradingEnv(gym.Env):
                 position_reward, closed = self._calculate_reward(position)
                 if not closed: open_positon += 1
                 reward += position_reward
-
+                self.total_rewards += position_reward
         # Execute action
         _action, stability_reward = self.action_aggregator.add_action(action) 
         reward += stability_reward
+        self.total_rewards += stability_reward
         # logger.info(f"Step:{self.current_step}: action: {action}, real: {_action} stability reward:{stability_reward} ")
         if _action in (1, 2) and open_positon < self.max_current_holding :
             self.ticket_id += 1
@@ -319,7 +322,7 @@ class ForexTradingEnv(gym.Env):
             logger.info(f"Step:{self.current_step} Tkt:{position['Ticket']} {position['Type']} Rwd:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
         else:
             reward -= 1 # no open any position, encourage open position
-
+            self.total_rewards -= 1
         # Move to the next time step
         self.current_step += 1
 
@@ -337,7 +340,7 @@ class ForexTradingEnv(gym.Env):
                 if position["Type"] == "Buy":
                     buy +=1
 
-            logger.info(f'--- Position:{len(self.positions)}/Buy:{buy} Balance: {self.balance} step {self.current_step }')
+            logger.info(f'--- Position:{len(self.positions)}/Buy:{buy} TtlRwds: {self.total_rewards} Balance: {self.balance} step {self.current_step }')
         # Additional info
         info = {}
         truncated = False
@@ -366,19 +369,4 @@ class ForexTradingEnv(gym.Env):
             p = TradingChart(self.csv_file, self.positions)
             p.plot()
 
-
-def eval(model_file,env):
-    # Evaluate the agent
-    model = PPO.load(model_file, env=env)
-    observation, info = env.reset()
-    done = False
-
-    while not done:
-        action, _states = model.predict(observation)
-        observation, reward, terminated, truncated, info = env.step(action)
-        done = terminated
-        env.render()
-
-    # Save the model
-    logger.info("Model saved to 'ppo_forex_transformer'")
 
