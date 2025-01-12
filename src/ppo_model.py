@@ -41,7 +41,7 @@ features = cf.env_parameters("observation_list")
 print(features)
 # features = ['open', 'high', 'low', 'close', 'vol', 'macd','boll_ub','boll_lb','rsi_30','dx_30','close_30_sma','close_60_sma']
 
-sequence_length = len(features)
+# sequence_length = 24 #len(features)
 
 # def linear_schedule(initial_value: float):
 #     def func(progress_remaining: float) -> float:
@@ -79,7 +79,7 @@ def load_data(csv_file):
     return data
 
 class TimeSeriesTransformer(nn.Module):
-    def __init__(self, input_size, embed_dim, num_heads, num_layers, dropout=0.1):
+    def __init__(self, input_size, embed_dim, num_heads, num_layers,sequence_length, dropout=0.1):
         super(TimeSeriesTransformer, self).__init__()
         self.model_type = 'Transformer'
         self.embed_dim = embed_dim
@@ -125,7 +125,7 @@ class TimeSeriesTransformer(nn.Module):
         return output[:, -1, :]
 
 class CustomCombinedExtractor(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.spaces.Box):
+    def __init__(self, observation_space: gym.spaces.Box, sequence_length):
         super(CustomCombinedExtractor, self).__init__(observation_space, features_dim=64)
         num_features = observation_space.shape[1]  # Should be 10 in this case
 
@@ -139,7 +139,8 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
             input_size=num_features,
             embed_dim=embed_dim,
             num_heads=num_heads,
-            num_layers=2
+            num_layers=2,
+            sequence_length =sequence_length
         ).to(device)
 
     def forward(self, observations):
@@ -156,16 +157,14 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
 class ForexTradingEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, file, features):
+    def __init__(self, file, features, sequence_length = 24):
         super(ForexTradingEnv, self).__init__()
         self.csv_file = file
         self.data = pd.read_csv(file)
         self.features = features
         self.logger_show = False
-        self.sequence_length = len(features)
+        self.sequence_length = sequence_length 
         self.max_steps = len(self.data) - self.sequence_length - 1
-        self.current_step = 0
-        self.ticket_id = 0
         self.balance_initial = cf.env_parameters("balance")
         self.symbol_col = ASSET
         self.shaping_reward = cf.env_parameters("shaping_reward")
@@ -176,12 +175,14 @@ class ForexTradingEnv(gym.Env):
         self.over_night_penalty =cf.symbol(self.symbol_col, "over_night_penalty")
         self.max_current_holding =cf.symbol(self.symbol_col, "max_current_holding")
         self.good_position_encourage=cf.symbol(self.symbol_col, "good_position_encourage")
+        self.action_space = spaces.Discrete(3)
         # self.backward_window = self.cf.env_parameters("backward_window")
+        # need to reset of following
+        self.current_step = 0
+        self.ticket_id = 0
         self.balance = self.balance_initial
         self.positions = []
-        self.total_profit = 0.0
         self.ticket_id = 0
-        self.action_space = spaces.Discrete(3)
         self.action_aggregator =ActionAggregator()
         # self.reward_calculator = RewardCalculator(
         #     self.data, cf, self.shaping_reward, self.stop_loss, self.profit_taken, self.backward_window
@@ -199,11 +200,13 @@ class ForexTradingEnv(gym.Env):
         super().reset(seed=seed)
         np.random.seed(seed)
 
+        self.current_step = 0
+        self.ticket_id = 0
         self.balance = self.balance_initial
         self.positions = []
-        self.total_profit = 0.0
         self.ticket_id = 0
         self.action_aggregator =ActionAggregator()
+        
         # self.current_step = np.random.randint(self.sequence_length, self.max_steps)
         self.current_step = self.sequence_length
         if self.logger_show: logger.info(f"--- Environment reset. Starting at step {self.current_step} ---")
@@ -249,7 +252,7 @@ class ForexTradingEnv(gym.Env):
             position["pips"] += close_poistion_reward
             position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 + position["pips"] #return deposit
-            if self.logger_show: logger.info(f"Step {self.current_step}: Reward:{position["pips"]}, SL {position["SL"]} DeltaStep: {position['DeltaStep']}")
+            if self.logger_show: logger.info(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, SL:{position["SL"]}, DeltaStep:{position['DeltaStep']}")
         # Check for profit target hit
         elif (direction == 'Buy' and _h >= profit_target_price) or (direction == 'Sell' and _l <= profit_target_price):
             # profit = abs(current_price - entry_price) * position['size']
@@ -261,7 +264,8 @@ class ForexTradingEnv(gym.Env):
             position["pips"] += close_poistion_reward
             position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 + position["pips"]
-            if self.logger_show: logger.info(f"Step {self.current_step}: Reward:{position["pips"]}, PT:{position["PT"]} DeltaStep:{position['DeltaStep']}")
+            if self.logger_show: logger.info(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, PT:{position["PT"]}, DeltaStep:{position['DeltaStep']}")
+
         else:
             if self.current_step + 5 + self.sequence_length >= len(self.data): # close all position 5 steps before all end.
                 close_poistion_reward = (_c - position["ActionPrice"] if direction == 'Buy' else position["ActionPrice"] - _c)* self.point
@@ -271,7 +275,7 @@ class ForexTradingEnv(gym.Env):
                 position["CloseStep"] = self.current_step
                 position["pips"] += close_poistion_reward
                 position["DeltaStep"] = self.current_step - position["ActionStep"]
-                if self.logger_show: logger.info(f"Step {self.current_step}: Reward:{position["pips"]}, Close:0.0, DeltaStep:{position['DeltaStep']}")
+                if self.logger_show: logger.info(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, Cls:End, DeltaStep:{position['DeltaStep']}")
                 self.balance += 100 + position["pips"]
             else:
                 delta = _c - position["ActionPrice"]
@@ -300,15 +304,16 @@ class ForexTradingEnv(gym.Env):
                 reward += position_reward
 
         # Execute action
-        action, stability_reward = self.action_aggregator.add_action(action) 
+        _action, stability_reward = self.action_aggregator.add_action(action) 
         reward += stability_reward
-        if action in (1, 2) and NoOpenPositon:
+        # if self.logger_show: logger.info(f"Step:{self.current_step}: action: {action}, real: {_action} stability reward:{stability_reward} ")
+        if _action in (1, 2) and NoOpenPositon:
             self.ticket_id += 1
             position = {
                 "Ticket": self.ticket_id,
                 "Symbol": self.symbol_col,
                 "ActionTime": _t,
-                "Type": "Buy" if action ==1 else "Sell",
+                "Type": "Buy" if _action ==1 else "Sell",
                 "Lot": 1,
                 "ActionPrice": _c,
                 "SL": self.stop_loss,
@@ -331,7 +336,7 @@ class ForexTradingEnv(gym.Env):
             # do not use transaction_fee penalty  
             # reward = self.transaction_fee #open cost
             self.balance -= 100 # hold up, this will make sure model can not open a lot of
-            if self.logger_show: logger.info(f"Step:{self.current_step}: Position:{position['Type']} Rewards:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
+            if self.logger_show: logger.info(f"Step:{self.current_step} Tkt:{position['Ticket']} {position['Type']} Rwd:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
         else:
             reward -= 1 # no open any position, encourage open position
 
@@ -352,7 +357,7 @@ class ForexTradingEnv(gym.Env):
                 if position["Type"] == "Buy":
                     buy +=1
 
-            logger.info(f'Position:{len(self.positions)}/Buy:{buy}---Balance: {self.balance} at step {self.current_step }')
+            logger.info(f'--- Position:{len(self.positions)}/Buy:{buy} Balance: {self.balance} step {self.current_step }')
         # Additional info
         info = {}
         truncated = False
@@ -383,16 +388,16 @@ class ForexTradingEnv(gym.Env):
 
 
 # %%
-def single_csv_training(csv_file):
+def single_csv_training(csv_file, sequence_length =24):
     # lr_schedule = LearningRateSchedule(linear_schedule(1e-4))  # Start with 1e-4
     lr_schedule = 1e-4
     policy_kwargs = dict(
         features_extractor_class=CustomCombinedExtractor,
-        features_extractor_kwargs=dict(),
+        features_extractor_kwargs=dict(sequence_length=sequence_length),
         net_arch=[dict(pi=[64, 64], vf=[64, 64])],
         activation_fn=nn.ReLU
     )
-    env = ForexTradingEnv(csv_file, features)
+    env = ForexTradingEnv(csv_file, features=features, sequence_length=sequence_length)
     env.logger_show = True
     model = PPO(
         'MlpPolicy',

@@ -59,7 +59,7 @@
         "AUDUSD": {
             "point": 100000,
             "max_spread": 50,
-            "transaction_fee": -15,
+            "transaction_fee": -5,
             "over_night_penalty": -50,
             "stop_loss_max": -400,
             "profit_taken_max": 800,

@@ -13,7 +13,7 @@ class ActionEnum(enumerate):
 
 class ActionAggregator:
     
-    def __init__(self, window_size =12): #1hr
+    def __init__(self, window_size =6): #1hr
         self.window_size = window_size
         self.action_window = deque(maxlen=window_size)
         self.stability_tracker = ActionStabilityTracker()
