@@ -13,19 +13,28 @@ import torch.nn as nn
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import numpy as np
+import datetime
 from src.util.read_config import EnvConfig
 from src.util.rewards import RewardCalculator
 from src.util.transaction import TransactionManager
 from src.util.plot_chart import TradingChart
 from src.util.log_render import render_to_file
-
+from src.util.action_aggregation import ActionAggregator
+ASSET= 'AUDUSD'
 # Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(f"./data/log/{ASSET}_{datetime.datetime.now():%Y%m%d}.log"),  # Log messages to a file
+        logging.StreamHandler()  # Optionally log messages to the console as well
+    ]    
+    )
 logger = logging.getLogger(__name__)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger.info(f"Using device: {device}")
-ASSET= 'AUDUSD'
 env_config_file ='/home/paulg/github/tradesformer/src/configure.json'
 cf = EnvConfig(env_config_file)
 features = cf.env_parameters("observation_list")
@@ -33,7 +42,6 @@ print(features)
 # features = ['open', 'high', 'low', 'close', 'vol', 'macd','boll_ub','boll_lb','rsi_30','dx_30','close_30_sma','close_60_sma']
 
 sequence_length = len(features)
-
 
 # def linear_schedule(initial_value: float):
 #     def func(progress_remaining: float) -> float:
@@ -174,7 +182,7 @@ class ForexTradingEnv(gym.Env):
         self.total_profit = 0.0
         self.ticket_id = 0
         self.action_space = spaces.Discrete(3)
-
+        self.action_aggregator =ActionAggregator()
         # self.reward_calculator = RewardCalculator(
         #     self.data, cf, self.shaping_reward, self.stop_loss, self.profit_taken, self.backward_window
         # )
@@ -195,9 +203,10 @@ class ForexTradingEnv(gym.Env):
         self.positions = []
         self.total_profit = 0.0
         self.ticket_id = 0
+        self.action_aggregator =ActionAggregator()
         # self.current_step = np.random.randint(self.sequence_length, self.max_steps)
         self.current_step = self.sequence_length
-        if self.logger_show: logger.info(f"Environment reset. Starting at step {self.current_step}")
+        if self.logger_show: logger.info(f"--- Environment reset. Starting at step {self.current_step} ---")
 
         observation = self._next_observation()
         info = {}
@@ -227,55 +236,56 @@ class ForexTradingEnv(gym.Env):
         profit_target_price = entry_price + position['PT']/self.point if direction == 'Buy' else entry_price - position['PT']/self.point
         stop_loss_price = entry_price + position['SL']/self.point if direction == 'Buy' else entry_price - position['SL']/self.point
 
-        reward = 0.0
+        close_poistion_reward = 0.0
+        good_position_reward = 0.0
         # Check for stop-loss hit
         if (direction == 'Buy' and _l <= stop_loss_price) or (direction == 'Sell' and _h >= stop_loss_price):
             # loss = abs(current_price - entry_price) * position['size']
-            reward = position['SL']  # Negative reward
+            close_poistion_reward = position['SL']  # Negative close_poistion_reward
             position["CloseTime"] = _t
             position["ClosePrice"] = stop_loss_price
             position["Status"] = 1
             position["CloseStep"] = self.current_step
-            position["pips"] += reward
+            position["pips"] += close_poistion_reward
             position["DeltaStep"] = self.current_step - position["ActionStep"]
-            self.balance += 100 #return deposit
-            if self.logger_show: logger.info(f"Step {self.current_step}: Reward: {reward}, Close: SL Step: {self.current_step - position['ActionStep']}")
+            self.balance += 100 + position["pips"] #return deposit
+            if self.logger_show: logger.info(f"Step {self.current_step}: Reward:{position["pips"]}, SL {position["SL"]} DeltaStep: {position['DeltaStep']}")
         # Check for profit target hit
         elif (direction == 'Buy' and _h >= profit_target_price) or (direction == 'Sell' and _l <= profit_target_price):
             # profit = abs(current_price - entry_price) * position['size']
-            reward =  position['PT'] # Positive reward
+            close_poistion_reward =  position['PT'] # Positive close_poistion_reward
             position["CloseTime"] = _t
             position["ClosePrice"] = profit_target_price
             position["Status"] = 1
             position["CloseStep"] = self.current_step
-            position["pips"] += reward
+            position["pips"] += close_poistion_reward
             position["DeltaStep"] = self.current_step - position["ActionStep"]
-            self.balance += 100
-            if self.logger_show: logger.info(f"Step {self.current_step}: Reward: {reward}, Close: PT Step: {self.current_step - position['ActionStep']}")
+            self.balance += 100 + position["pips"]
+            if self.logger_show: logger.info(f"Step {self.current_step}: Reward:{position["pips"]}, PT:{position["PT"]} DeltaStep:{position['DeltaStep']}")
         else:
-            if self.current_step + 1 >= len(self.data):
-                reward = (_c - position["ActionPrice"] if direction == 'Buy' else position["ActionPrice"] - _c)* self.point
+            if self.current_step + 5 + self.sequence_length >= len(self.data): # close all position 5 steps before all end.
+                close_poistion_reward = (_c - position["ActionPrice"] if direction == 'Buy' else position["ActionPrice"] - _c)* self.point
                 position["CloseTime"] = _t
                 position["ClosePrice"] = _c
                 position["Status"] = 2
                 position["CloseStep"] = self.current_step
-                position["pips"] += reward
+                position["pips"] += close_poistion_reward
                 position["DeltaStep"] = self.current_step - position["ActionStep"]
-                if self.logger_show: logger.info(f"Step {self.current_step}: Reward: {reward}, Close: End Step: {self.current_step - position['ActionStep']}")
-                self.balance += 100
+                if self.logger_show: logger.info(f"Step {self.current_step}: Reward:{position["pips"]}, Close:0.0, DeltaStep:{position['DeltaStep']}")
+                self.balance += 100 + position["pips"]
             else:
                 delta = _c - position["ActionPrice"]
                 if direction == "Buy":
-                    reward = self.good_position_encourage if delta >=0 else -self.good_position_encourage
+                    good_position_reward = self.good_position_encourage if delta >=0 else -self.good_position_encourage
                 elif direction == "Sell":
-                    reward = -self.good_position_encourage if delta >=0 else self.good_position_encourage
+                    good_position_reward = -self.good_position_encourage if delta >=0 else self.good_position_encourage
 
-                position["PT"] += reward 
-                position["SL"] += reward if position["SL"] <= self.stop_loss else self.stop_loss
+                position["PT"] += good_position_reward 
+                position["SL"] = position["SL"] + good_position_reward if position["SL"] >= self.stop_loss else self.stop_loss
                     
-                position["Reward"] += reward
+                position["Reward"] += good_position_reward
 
-        return reward
+        return close_poistion_reward + good_position_reward
 
     def step(self, action):
         _o, _c, _h, _l,_t,_day = self.data.iloc[self.current_step][["open","close","high","low","time","day"]]
@@ -290,6 +300,8 @@ class ForexTradingEnv(gym.Env):
                 reward += position_reward
 
         # Execute action
+        action, stability_reward = self.action_aggregator.add_action(action) 
+        reward += stability_reward
         if action in (1, 2) and NoOpenPositon:
             self.ticket_id += 1
             position = {
@@ -316,13 +328,13 @@ class ForexTradingEnv(gym.Env):
                 "DeltaStep" : 0
             }
             self.positions.append(position)
-            reward = self.transaction_fee #open cost
+            # do not use transaction_fee penalty  
+            # reward = self.transaction_fee #open cost
             self.balance -= 100 # hold up, this will make sure model can not open a lot of
-            if self.logger_show: logger.info(f"Step {self.current_step}: Position: {position['Type']} at {position['ActionTime']}")
+            if self.logger_show: logger.info(f"Step:{self.current_step}: Position:{position['Type']} Rewards:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
         else:
-            reward -= 1
+            reward -= 1 # no open any position, encourage open position
 
-        self.balance += reward
         # Move to the next time step
         self.current_step += 1
 
@@ -393,7 +405,7 @@ def single_csv_training(csv_file):
 
     # Train the agent
     logger.info("Starting model training...")
-    model.learn(total_timesteps=200000)
+    model.learn(total_timesteps=10000)
     logger.info("Model training complete")
 
 def eval(model_file,env):
@@ -454,7 +466,7 @@ def multiply_csv_files_traning(data_directory):
                 learning_rate=lr_schedule,  # Reduced learning rate
                 max_grad_norm=0.5    # Gradient clipping
             )
-        model.learn(total_timesteps=500000)  # Adjust the number of timesteps per batch as needed
+        model.learn(total_timesteps=100000)  # Adjust the number of timesteps per batch as needed
 
         # Save the model after training on this file
         model.save(model_filename)

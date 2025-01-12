@@ -11,7 +11,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv,SubprocVecEnv
 from util.plot_chart import TradingChart
 from util.log_render import render_to_file
 from util.read_config import EnvConfig
-from util.action_enum import ActionEnum, form_action
+from src.util.action_agg import ActionEnum, form_action
 from util.rewards import RewardCalculator
 from util.transaction import TransactionManager
 
