@@ -13,7 +13,7 @@ class TradingChart():
         self.ohlc.index = pd.DatetimeIndex(self.ohlc['Date'])
         self.transaction_history = transaction_history
         self.parameters = {"figscale":6.0,"style":"nightclouds", "type":"hollow_and_filled", "warn_too_much_data":2000 }
-        self.symbol = self.transaction_history[0]["Symbol"]
+        self.symbol = self.ohlc.iloc[1]["symbol"]
     def transaction_line(self):
         _wlines=[]
         _llines=[]
