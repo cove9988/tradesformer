@@ -7,9 +7,10 @@ from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
 logger = logging.getLogger(__name__)
 
-def single_csv_training(csv_file, env_config_file, asset, sequence_length =24):
+def single_csv_training(csv_file, env_config_file, asset):
     cf = EnvConfig(env_config_file)
     features = cf.env_parameters("observation_list")
+    sequence_length = cf.env_parameters("backward_window")
     print(features)
     # lr_schedule = LearningRateSchedule(linear_schedule(1e-4))  # Start with 1e-4
     lr_schedule = 1e-4
@@ -40,7 +41,6 @@ if __name__ == "__main__":
     asset = "AUDUSD"    
     csv_file = f"/home/paulg/github/tradesformer/data/split/{asset}/weekly/{asset}_2022_1.csv"
     env_config_file ='/home/paulg/github/tradesformer/src/configure.json'
-    sequence_length = 24
     setup_logging(asset =asset, console_level=logging.WARNING, file_level=logging.INFO)
-    single_csv_training(csv_file=csv_file, env_config_file =env_config_file, asset= asset, sequence_length=sequence_length)
+    single_csv_training(csv_file=csv_file, env_config_file =env_config_file, asset= asset)
 

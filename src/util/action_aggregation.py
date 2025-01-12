@@ -94,11 +94,11 @@ class ActionAggregatorOptimized:
 
 
 class ActionStabilityTracker:
-    def __init__(self):
+    def __init__(self, consistency_reward=0.01):
         self.last_action = None
         self.consecutive_count = 0
-        self.change_penalty = -1.0  # Penalty for frequent changes
-        self.consistency_reward = 0.5  # Reward for consistent actions
+        self.change_penalty = -consistency_reward * 2   # Penalty for frequent changes
+        self.consistency_reward = consistency_reward  # Reward for consistent actions
 
     def calculate_stability_reward(self, current_action):
         """Calculate reward/penalty based on action stability."""
