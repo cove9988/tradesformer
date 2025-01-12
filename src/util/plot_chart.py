@@ -20,7 +20,7 @@ class TradingChart():
 
         rewards = 0
         for tr in self.transaction_history:
-            rd = tr['Reward']  
+            rd = tr['pips']  
             rewards += rd
             if tr['CloseStep'] >= 0 :
                 if rd > 0 :

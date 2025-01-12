@@ -47,7 +47,7 @@ def eval(data_directory, env_config_file, model_file, asset, run_time = 10, mode
 if __name__ == "__main__":
     asset = "AUDUSD"   
     env_config_file = '/home/paulg/github/tradesformer/src/configure.json'
-    model_file = '/home/paulg/github/tradesformer/data/model/AUDUSD/weekly/AUDUSD_2024_120.zip'
+    model_file = '/home/paulg/github/tradesformer/data/model/AUDUSD/weekly/AUDUSD_2024_133.zip'
     data_directory = "/home/paulg/github/tradesformer/data/split/AUDUSD/weekly"
     setup_logging(asset=asset, console_level=logging.ERROR, file_level=logging.INFO)
     eval(data_directory, env_config_file, model_file, asset, run_time= 5, mode = 'graph', sequence_length=24)
