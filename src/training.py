@@ -7,7 +7,10 @@ from stable_baselines3 import PPO
 from src.ppo_model import ForexTradingEnv, CustomCombinedExtractor
 from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/mac_v
 logger = logging.getLogger(__name__)
 
 def multiply_csv_files_traning(data_directory,env_config_file,asset):
@@ -26,9 +29,13 @@ def multiply_csv_files_traning(data_directory,env_config_file,asset):
         net_arch=[dict(pi=[64, 64], vf=[64, 64])],
         activation_fn=nn.ReLU
     )
+<<<<<<< HEAD
     # Set up the TensorBoard callback
     log_dir=f'./data/log/{asset}/'
     # callback = CustomTensorBoardCallback(log_dir=log_dir)
+=======
+
+>>>>>>> upstream/mac_v
     # Initialize the batch counter
     batch_num = 1
     model = None
