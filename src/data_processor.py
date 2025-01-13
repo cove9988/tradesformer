@@ -1,7 +1,10 @@
 import os
 import sys
+import logging
 import pandas as pd
 from finta import TA
+from src.util.read_config import EnvConfig
+from src.util.logger_config import setup_logging
 
 def patch_missing_data(df, dt_col_name):
     if df.shape[1] == 6:
@@ -88,14 +91,16 @@ def add_time_feature(df,symbol):
     return df 
 
 # 'macd', 'boll_ub', 'boll_lb', 'rsi_30', 'dx_30','close_30_sma', 'close_60_sma'
-def tech_indictors(df):
+def tech_indictors(df, period = 12 * 4 ):
     df['macd'] = TA.MACD(df).SIGNAL
     df['boll_ub'] = TA.BBANDS(df).BB_UPPER
+    df['boll_md'] = TA.BBANDS(df).BB_MIDDLE
     df['boll_lb'] = TA.BBANDS(df).BB_LOWER
-    df['rsi_30'] = TA.RSI(df,period= 30)
-    df['dx_30'] = TA.ADX(df,period= 30)
-    df['close_30_sma'] = TA.SMA(df,period=30)
-    df['close_60_sma'] = TA.SMA(df,period=60)        
+    df['rsi_30'] = TA.RSI(df,period= period)
+    df['dx_30'] = TA.ADX(df,period= period)
+    df['close_30_sma'] = TA.SMA(df,period=period)
+    df['close_60_sma'] = TA.SMA(df,period=period*2)
+    df['atr'] = TA.ATR(df,period=period)        
     
     #fill NaN to 0
     df = df.fillna(0)
@@ -111,7 +116,7 @@ def split_timeserious(df, key_ts='dt', freq='W', symbol=''):
         df (pandas df with timestamp is part of multi index): 
         spliter (str): H, D, W, M, Y
     """
-
+    
     df = df.set_index(key_ts)
     freq_name = {'H':'hourly','D':'daily','W':'weekly','M':'monthly','Y':'Yearly'}
     count = 0
@@ -136,13 +141,17 @@ def pivot_open(df):
         df[col] = df[col] - pivot_open_value
     return df
 """
-python ./data/data_processor.py GBPUSD W ./data/raw/GBPUSD_M5.csv
+python -m src.data_processor EURUSD W ./data/raw/EURUSD_M5.csv
 symbol="GBPUSD"
 freq = [H, D, W, M]
 file .csv, column names [time, open, high, low, close, vol]
 """
 if __name__ == '__main__':
     symbol, freq, file = sys.argv[1],sys.argv[2],sys.argv[3]
+    setup_logging(asset=symbol, console_level=logging.ERROR, file_level=logging.INFO)
+    env_config_file = './src/configure.json'
+    cf = EnvConfig(env_config_file)
+    period = cf.env_parameters("indicator_period")
     print(f'processing... symbol:{symbol} freq:{freq} file:{file}')
     try :
         df = pd.read_csv(file)
@@ -151,5 +160,5 @@ if __name__ == '__main__':
         exit(0)
     df = patch_missing_data(df,dt_col_name='time')            
     df = add_time_feature(df, symbol=symbol)
-    df = tech_indictors(df)
+    df = tech_indictors(df,period)
     split_timeserious(df,freq=freq, symbol=symbol)
