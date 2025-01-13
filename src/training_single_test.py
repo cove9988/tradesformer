@@ -38,9 +38,9 @@ def single_csv_training(csv_file, env_config_file, asset):
 
 
 if __name__ == "__main__":
-    asset = "AUDUSD"    
-    csv_file = f"/home/paulg/github/tradesformer/data/split/{asset}/weekly/{asset}_2022_1.csv"
-    env_config_file ='/home/paulg/github/tradesformer/src/configure.json'
+    asset = "EURUSD"    
+    csv_file = f"./data/split/{asset}/weekly/{asset}_2023_1.csv"
+    env_config_file ='./src/configure.json'
     setup_logging(asset =asset, console_level=logging.WARNING, file_level=logging.INFO)
     single_csv_training(csv_file=csv_file, env_config_file =env_config_file, asset= asset)
 

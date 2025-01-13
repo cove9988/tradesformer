@@ -1,5 +1,6 @@
 {
     "env": {
+        "indicator_period": 48,
         "observation_list": [
             "open",
             "high",
@@ -10,11 +11,13 @@
             "day",
             "macd",
             "boll_ub",
+            "boll_md",
             "boll_lb",
             "rsi_30",
             "dx_30",
             "close_30_sma",
-            "close_60_sma"
+            "close_60_sma",
+            "atr"
         ],
         "over_night_cash_penalty": 5,
         "balance": 10000,
@@ -23,37 +26,34 @@
         "random_start": true,
         "log_filename": "./data/log/log_{symbol}",
         "do_nothing": 0.1,
-        "title":"{symbol} 5M",
+        "title":"{symbol} 5M weekly",
         "description":"sma, rsi and boll input in weekly with {symbol}",
         "shaping_reward": 0.1,
         "forward_window": 12,
         "backward_window": 48,
         "good_position_encourage": 2,
-        "consistency_reward" : 0.01,
-        "is_training": true
+        "consistency_reward" : 0.01
     },
     "symbol": {
         "GBPUSD": {
             "point": 100000,
             "max_spread": 50,
-            "transaction_fee": -20,
+            "transaction_fee": -10,
             "over_night_penalty": -50,
             "stop_loss_max": -300,
             "profit_taken_max": 600,
             "max_current_holding": 1,
-            "good_position_encourage": 5,
             "limit_order": false,
             "limit_order_expiration": 5
         },
         "EURUSD": {
             "point": 100000,
             "max_spread": 50,
-            "transaction_fee": -15,
+            "transaction_fee": -10,
             "over_night_penalty": -50,
             "stop_loss_max": -200,
             "profit_taken_max": 500,
-            "max_current_holding": 10,
-            "good_position_encourage": 5,
+            "max_current_holding": 1,
             "limit_order": false,
             "limit_order_expiration": 5
 
