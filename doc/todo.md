@@ -5,4 +5,4 @@
     2. also need to have delta of each step Position_Open_Price - Close[n+1] for each step price. hopefully this can encourage it have better opening
     3. limit number of openning positions?
 
-3. connect to MT5
+3. connect to MT4
