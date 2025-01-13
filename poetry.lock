@@ -338,8 +338,13 @@ description = "A standard API for reinforcement learning and a diverse set of re
 optional = false
 python-versions = ">=3.8"
 files = [
+<<<<<<< HEAD
     {file = "gymnasium-0.29.1-py3-none-any.whl", hash = "sha256:61c3384b5575985bb7f85e43213bcb40f36fcdff388cae6bc229304c71f2843e"},
     {file = "gymnasium-0.29.1.tar.gz", hash = "sha256:1a532752efcb7590478b1cc7aa04f608eb7a2fdad5570cd217b66b6a35274bb1"},
+=======
+    {file = "gymnasium-1.0.0-py3-none-any.whl", hash = "sha256:b6f40e1e24c5bd419361e1a5b86a9117d2499baecc3a660d44dfff4c465393ad"},
+    {file = "gymnasium-1.0.0.tar.gz", hash = "sha256:9d2b66f30c1b34fe3c2ce7fae65ecf365d0e9982d2b3d860235e773328a3b403"},
+>>>>>>> upstream/mac_v
 ]
 
 [package.dependencies]
