@@ -91,20 +91,24 @@ class ActionAggregatorOptimized:
         else:
             return ActionEnum.Hold
 
-
-
 class ActionStabilityTracker:
     def __init__(self, consistency_reward=0.01):
         self.last_action = None
         self.consecutive_count = 0
         self.change_penalty = -consistency_reward * 2   # Penalty for frequent changes
         self.consistency_reward = consistency_reward  # Reward for consistent actions
+        self.max_consistency = 12 # if consistency no limit, RL will take adv of one directly without any changes to accumulate rewards.
 
     def calculate_stability_reward(self, current_action):
-        """Calculate reward/penalty based on action stability."""
+        """Calculate reward/penalty based on action stability.
+        if continue 
+        """
         if current_action == self.last_action:
             self.consecutive_count += 1
-            reward = self.consistency_reward * self.consecutive_count
+            if self.consecutive_count < self.max_consistency:
+                reward = self.consistency_reward * self.consecutive_count
+            else:
+                reward = self.consistency_reward * self.change_penalty
         else:
             reward = self.change_penalty
             self.consecutive_count = 1  # Reset the counter for new action

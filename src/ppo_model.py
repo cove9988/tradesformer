@@ -161,7 +161,7 @@ class ForexTradingEnv(gym.Env):
         self.balance = self.balance_initial
         self.positions = []
         self.ticket_id = 0
-        self.total_rewards = 0
+        self.ttl_rewards = 0
         self.action_aggregator =ActionAggregator()
         # self.reward_calculator = RewardCalculator(
         #     self.data, cf, self.shaping_reward, self.stop_loss, self.profit_taken, self.backward_window
@@ -184,12 +184,12 @@ class ForexTradingEnv(gym.Env):
         self.balance = self.balance_initial
         self.positions = []
         self.ticket_id = 0
-        self.total_rewards = 0
+        self.ttl_rewards = 0.0
         self.action_aggregator =ActionAggregator()
         
         # self.current_step = np.random.randint(self.sequence_length, self.max_steps)
         self.current_step = self.sequence_length
-        logger.info(f"--- Environment reset. Starting at step {self.current_step} ---")
+        logger.info(f"--- Environment reset. Starting at step {self.current_step} --total rewards: {self.ttl_rewards}")
 
         observation = self._next_observation()
         info = {}
@@ -214,6 +214,7 @@ class ForexTradingEnv(gym.Env):
         PT = PT + reward, SL = SL + abs(reward)
         '''
         _o, _c, _h, _l,_t,_day = self.data.iloc[self.current_step][["open","close","high","low","time","day"]]
+        _msg =[]
         entry_price = position['ActionPrice']
         direction = position['Type']
         profit_target_price = entry_price + position['PT']/self.point if direction == 'Buy' else entry_price - position['PT']/self.point
@@ -233,7 +234,7 @@ class ForexTradingEnv(gym.Env):
             position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 + position["pips"] #return deposit
             closed = True
-            logger.info(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, SL:{position["SL"]}, DeltaStep:{position['DeltaStep']}")
+            _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, SL:{position["SL"]}, DeltaStep:{position['DeltaStep']}")
         # Check for profit target hit
         elif (direction == 'Buy' and _h >= profit_target_price) or (direction == 'Sell' and _l <= profit_target_price):
             # profit = abs(current_price - entry_price) * position['size']
@@ -246,7 +247,7 @@ class ForexTradingEnv(gym.Env):
             position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 + position["pips"]
             closed = True
-            logger.info(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, PT:{position["PT"]}, DeltaStep:{position['DeltaStep']}")
+            _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, PT:{position["PT"]}, DeltaStep:{position['DeltaStep']}")
 
         else:
             if self.current_step + 5 + self.sequence_length >= len(self.data): # close all position 5 steps before all end.
@@ -257,7 +258,7 @@ class ForexTradingEnv(gym.Env):
                 position["CloseStep"] = self.current_step
                 position["pips"] += close_poistion_reward
                 position["DeltaStep"] = self.current_step - position["ActionStep"]
-                logger.info(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, Cls:End, DeltaStep:{position['DeltaStep']}")
+                _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, Cls:End, DeltaStep:{position['DeltaStep']}")
                 self.balance += 100 + position["pips"]
                 closed = True
             else:
@@ -271,25 +272,27 @@ class ForexTradingEnv(gym.Env):
                 position["SL"] = position["SL"] + good_position_reward if position["SL"] >= self.stop_loss else self.stop_loss
                     
                 position["Reward"] += good_position_reward
-
-        return close_poistion_reward + good_position_reward, closed
+                _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: NO_Close, PT:{position['PT']}, SL:{position['SL']} Rwd:{position["Reward"]}")    
+        return close_poistion_reward + good_position_reward, closed, _msg
 
     def step(self, action):
         _o, _c, _h, _l,_t,_day = self.data.iloc[self.current_step][["open","close","high","low","time","day"]]
         reward = 0.0
-
+        position_reward = 0
+        stability_reward = 0
+        action_hold_reward = 0
+        
+        _msg =[]
         # Update positions and calculate rewards
         open_positon = 0
         for position in self.positions:
             if position['Status'] == 0:
-                position_reward, closed = self._calculate_reward(position)
+                position_reward, closed,_msg = self._calculate_reward(position)
                 if not closed: open_positon += 1
                 reward += position_reward
-                self.total_rewards += position_reward
         # Execute action
         _action, stability_reward = self.action_aggregator.add_action(action) 
         reward += stability_reward
-        self.total_rewards += stability_reward
         # logger.info(f"Step:{self.current_step}: action: {action}, real: {_action} stability reward:{stability_reward} ")
         if _action in (1, 2) and open_positon < self.max_current_holding :
             self.ticket_id += 1
@@ -320,10 +323,13 @@ class ForexTradingEnv(gym.Env):
             # do not use transaction_fee penalty  
             # reward = self.transaction_fee #open cost
             self.balance -= 100 # hold up, this will make sure model can not open a lot of
-            logger.info(f"Step:{self.current_step} Tkt:{position['Ticket']} {position['Type']} Rwd:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
+            _msg.append(f"Step:{self.current_step} Tkt:{position['Ticket']} {position['Type']} Rwd:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
         else:
-            reward -= 1 # no open any position, encourage open position
-            self.total_rewards -= 1
+            action_hold_reward = -1
+        
+        reward += action_hold_reward # no open any position, encourage open position
+            
+        self.ttl_rewards += reward    
         # Move to the next time step
         self.current_step += 1
 
@@ -332,7 +338,7 @@ class ForexTradingEnv(gym.Env):
 
         # Get next observation
         obs = self._next_observation()
-
+        _msg.append(f'---idle----step:{self.current_step}, RF:{action} Action:{_action} reward:{reward} total_rewards:{self.ttl_rewards} position_reward:{position_reward} stability_reward:{stability_reward} action_hold_reward:{action_hold_reward}')
         # Convert tensors to CPU for logging or NumPy conversion
         # obs_cpu = obs.cpu().numpy()
         if done:
@@ -341,9 +347,12 @@ class ForexTradingEnv(gym.Env):
                 if position["Type"] == "Buy":
                     buy +=1
 
-            logger.info(f'--- Position:{len(self.positions)}/Buy:{buy} TtlRwds: {self.total_rewards} Balance: {self.balance} step {self.current_step }')
+            _msg.append(f'--- Position:{len(self.positions)}/Buy:{buy} TtlRwds: {self.ttl_rewards} Balance: {self.balance} step {self.current_step }')
         # Additional info
-        info = {}
+        if self.logger_show:
+            for _m in _msg:
+                logger.info(_m)
+        info = {"info":_msg}
         truncated = False
         return obs, reward, done, truncated, info
 
