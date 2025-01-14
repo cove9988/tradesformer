@@ -37,7 +37,7 @@ def multiply_csv_files_traning(data_directory,env_config_file,asset):
         # data[features] = scaler.fit_transform(data[features])
 
         # Reset the environment for the new file
-        env = ForexTradingEnv(file, cf, asset, features, sequence_length)
+        env = ForexTradingEnv(file, cf, asset, features, sequence_length, logger_show=True)
         # lr_schedule = LearningRateSchedule(linear_schedule(1e-4))
         lr_schedule = 1e-3
         # Train the model on the current file
