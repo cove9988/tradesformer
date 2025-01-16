@@ -7,6 +7,7 @@ from stable_baselines3 import PPO
 from src.trading_gym_env import ForexTradingEnv, CustomCombinedExtractor
 from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
+
 logger = logging.getLogger(__name__)
 
 def multiply_csv_files_traning(data_directory,env_config_file,asset):

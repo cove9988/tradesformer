@@ -1,4 +1,21 @@
 # %%
+"""
+Evaluates a trained trading model on the specified CSV data files, using a Forex trading 
+environment configured with the given parameters.
+
+Args:
+    data_directory (str): Path to the directory containing CSV data files.
+    env_config_file (str): Path to the environment configuration JSON file.
+    model_file (str): Path to the saved training model file.
+    asset (str): Asset symbol to be traded (e.g., "EURUSD").
+    run_time (int, optional): Number of runs for evaluation. Defaults to 10.
+    mode (str, optional): Render mode for the environment visualization. Defaults to 'graph'.
+    save_plot (bool, optional): Whether or not to save rendered plots. Defaults to False.
+    sequence_length (int, optional): Number of time steps to include in each observation. Defaults to 24.
+
+Returns:
+    None
+"""
 import glob
 import os
 import pandas as pd

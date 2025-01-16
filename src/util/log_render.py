@@ -1,4 +1,20 @@
+
 import os
+"""
+Renders transaction data to a specified log file and optionally prints it to the console.
+
+Parameters:
+    log_header (bool): If True, includes a header row in the log output.
+    log_filename (str): File path where the log is written or appended.
+    printout (bool): If True, prints transaction information to the console.
+    balance (float): Current balance value.
+    balance_initial (float): Initial balance value.
+    transaction_close_this_step (list): List of dictionaries with details of closed transactions.
+    done_information (str): Additional information appended to the log upon completion.
+
+Returns:
+    None
+"""
 def render_to_file(**kwargs):
     log_header = kwargs.get("log_header",False)
     log_filename=kwargs.get("log_filename","")
