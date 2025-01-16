@@ -2,9 +2,10 @@ import logging
 import datetime
 import torch.nn as nn
 from stable_baselines3 import PPO
-from src.ppo_model import ForexTradingEnv, CustomCombinedExtractor
+from src.trading_gym_env import ForexTradingEnv, CustomCombinedExtractor
 from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
+
 logger = logging.getLogger(__name__)
 
 def single_csv_training(csv_file, env_config_file, asset, model_name =''):
