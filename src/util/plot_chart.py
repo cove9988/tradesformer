@@ -1,4 +1,56 @@
 import os
+"""
+This module provides functionalities to visualize OHLC trading data using matplotlib charts.
+It contains a TradingChart class, which plots candlestick charts decorated with transaction
+history lines for both winning and losing trades.
+"""
+"""
+Class: TradingChart
+-------------------
+A class responsible for reading OHLC data from a CSV file, rendering candlestick charts using
+mplfinance, and optionally saving the resulting plots. The class also accepts a transaction
+history to plot lines representing winning and losing trades.
+Attributes:
+    save_plot (bool): Indicates whether the plot should be saved to a file or displayed.
+    output_file (str): The file path for saving the plot image.
+    ohlc (DataFrame): A DataFrame containing the time-indexed OHLC data.
+    transaction_history (list): A list of dictionaries containing details about each transaction.
+    parameters (dict): A dictionary of default plotting parameters passed to mplfinance.
+    symbol (str): The trading symbol (e.g., currency pair or asset) extracted from the OHLC data.
+"""
+"""
+Method: __init__(self, csv_file, transaction_history, save_plot, **kwargs)
+-------------------------------------------------------------------------
+Initializes the TradingChart with the given CSV file containing OHLC data, a list of
+transaction details, and a flag indicating whether to save the resulting chart.
+Args:
+    csv_file (str): The path to the CSV file containing OHLC data.
+    transaction_history (list): A list of transactions, each represented by a dictionary
+        with 'pips', 'ActionTime', 'ActionPrice', 'CloseTime', 'ClosePrice', and 'CloseStep'.
+    save_plot (bool): True to save the plotted chart as an image, False to display it.
+    **kwargs: Additional keyword arguments that may be used for further customization.
+"""
+"""
+Method: transaction_line(self)
+-----------------------------
+Generates line segments representing winning and losing trades. Accumulates and returns the
+total rewards from all transactions.
+Returns:
+    combined_alines (list): A combined list of tuples representing the start and end points
+        for all transaction lines.
+    combined_colors (list): A corresponding list of colors ('b' for winning trades,
+        'r' for losing trades).
+    rewards (float): The total accumulated reward (sum of pips) from the transaction history.
+"""
+"""
+Method: plot(self)
+------------------
+Plots the candlestick chart based on the OHLC data and overlays transaction lines for winning
+and losing trades. The chart can either be saved to a specified file or displayed interactively,
+depending on the save_plot attribute.
+Returns:
+    None
+"""
 import mplfinance as mpf
 import pandas as pd
 import datetime
