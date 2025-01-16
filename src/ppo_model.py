@@ -133,13 +133,14 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
 class ForexTradingEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, file, cf, asset, features, sequence_length = 24, logger_show = False):
+    def __init__(self, file, cf, asset, features, sequence_length = 24, logger_show = False, save_plot = False):
         super(ForexTradingEnv, self).__init__()
         self.csv_file = file
         self.cf = cf
         self.data = pd.read_csv(file)
         self.features = features
         self.logger_show = logger_show
+        self.save_plot = save_plot
         self.sequence_length = sequence_length 
         self.max_steps = len(self.data) - self.sequence_length - 1
         self.balance_initial = self.cf.env_parameters("balance")
@@ -234,7 +235,7 @@ class ForexTradingEnv(gym.Env):
             position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 + position["pips"] #return deposit
             closed = True
-            _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, SL:{position["SL"]}, DeltaStep:{position['DeltaStep']}")
+            _msg.append(f'Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, SL:{position["SL"]}, DeltaStep:{position["DeltaStep"]}')
         # Check for profit target hit
         elif (direction == 'Buy' and _h >= profit_target_price) or (direction == 'Sell' and _l <= profit_target_price):
             # profit = abs(current_price - entry_price) * position['size']
@@ -247,7 +248,7 @@ class ForexTradingEnv(gym.Env):
             position["DeltaStep"] = self.current_step - position["ActionStep"]
             self.balance += 100 + position["pips"]
             closed = True
-            _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, PT:{position["PT"]}, DeltaStep:{position['DeltaStep']}")
+            _msg.append(f'Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, PT:{position["PT"]}, DeltaStep:{position["DeltaStep"]}')
 
         else:
             if self.current_step + 5 + self.sequence_length >= len(self.data): # close all position 5 steps before all end.
@@ -258,7 +259,7 @@ class ForexTradingEnv(gym.Env):
                 position["CloseStep"] = self.current_step
                 position["pips"] += close_poistion_reward
                 position["DeltaStep"] = self.current_step - position["ActionStep"]
-                _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, Cls:End, DeltaStep:{position['DeltaStep']}")
+                _msg.append(f'Step:{self.current_step} Tkt:{position["Ticket"]}: Rwd:{position["pips"]}, Cls:End, DeltaStep:{position["DeltaStep"]}')
                 self.balance += 100 + position["pips"]
                 closed = True
             else:
@@ -272,7 +273,7 @@ class ForexTradingEnv(gym.Env):
                 position["SL"] = position["SL"] + good_position_reward if position["SL"] >= self.stop_loss else self.stop_loss
                     
                 position["Reward"] += good_position_reward
-                _msg.append(f"Step:{self.current_step} Tkt:{position["Ticket"]}: NO_Close, PT:{position['PT']}, SL:{position['SL']} Rwd:{position["Reward"]}")    
+                _msg.append(f'Step:{self.current_step} Tkt:{position["Ticket"]}: NO_Close, PT:{position["PT"]}, SL:{position["SL"]} Rwd:{position["Reward"]}')    
         return close_poistion_reward + good_position_reward, closed, _msg
 
     def step(self, action):
@@ -292,8 +293,9 @@ class ForexTradingEnv(gym.Env):
                 reward += position_reward
         # Execute action
         _action, stability_reward = self.action_aggregator.add_action(action) 
-        reward += stability_reward
-        # logger.info(f"Step:{self.current_step}: action: {action}, real: {_action} stability reward:{stability_reward} ")
+        if open_positon < self.max_current_holding: #only check if need to open
+            reward += stability_reward
+        # logger.info(f'Step:{self.current_step}: action: {action}, real: {_action} stability reward:{stability_reward} ')
         if _action in (1, 2) and open_positon < self.max_current_holding :
             self.ticket_id += 1
             position = {
@@ -323,11 +325,13 @@ class ForexTradingEnv(gym.Env):
             # do not use transaction_fee penalty  
             # reward = self.transaction_fee #open cost
             self.balance -= 100 # hold up, this will make sure model can not open a lot of
-            _msg.append(f"Step:{self.current_step} Tkt:{position['Ticket']} {position['Type']} Rwd:{position['pips']} SL:{position['SL']} PT:{position['PT']}")
+            _msg.append(f'Step:{self.current_step} Tkt:{position["Ticket"]} {position["Type"]} Rwd:{position["pips"]} SL:{position["SL"]} PT:{position["PT"]}')
+        elif open_positon < self.max_current_holding and action == 0:
+            action_hold_reward = -1 # no open any position, encourage open position
         else:
-            action_hold_reward = -1
+            action_hold_reward = 0
         
-        reward += action_hold_reward # no open any position, encourage open position
+        reward += action_hold_reward 
             
         self.ttl_rewards += reward    
         # Move to the next time step
@@ -346,8 +350,9 @@ class ForexTradingEnv(gym.Env):
             for position in self.positions:
                 if position["Type"] == "Buy":
                     buy +=1
-
-            _msg.append(f'--- Position:{len(self.positions)}/Buy:{buy} TtlRwds: {self.ttl_rewards} Balance: {self.balance} step {self.current_step }')
+            _m = f'--- Position:{len(self.positions)}/Buy:{buy} TtlRwds: {self.ttl_rewards} Balance: {self.balance} step {self.current_step }'
+            logger.info (_m)
+            _msg.append(_m)
         # Additional info
         if self.logger_show:
             for _m in _msg:
@@ -376,7 +381,23 @@ class ForexTradingEnv(gym.Env):
             render_to_file(**pm)
             if log_header: log_header = False
         elif mode == 'graph' :
-            p = TradingChart(self.csv_file, self.positions)
+            p = TradingChart(self.csv_file, self.positions, self.save_plot)
             p.plot()
-
-
+        elif mode == 'both':
+            log_header = True
+            printout = True
+            log_file = self.csv_file.replace("split/", "log/")
+            pm = {
+                "log_header": log_header,
+                "log_filename": log_file,
+                "printout": printout,
+                "balance": self.balance,
+                "balance_initial": self.balance_initial,
+                "transaction_close_this_step": self.positions,
+                "done_information": False
+            }
+            render_to_file(**pm)
+            if log_header: log_header = False
+            
+            p = TradingChart(self.csv_file, self.positions, self.save_plot)
+            p.plot()

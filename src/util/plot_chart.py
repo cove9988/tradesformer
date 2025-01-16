@@ -5,8 +5,9 @@ import datetime
 
 class TradingChart():
     """An ohlc trading visualization using matplotlib made to render tgym environment"""
-    def __init__(self, csv_file, transaction_history, **kwargs):
+    def __init__(self, csv_file, transaction_history, save_plot, **kwargs):
         df= pd.read_csv(csv_file)
+        self.save_plot =save_plot
         self.output_file = csv_file.replace("split/", "plot/").replace(".csv", ".png")
         self.ohlc = df[['time','open','high','low','close','symbol']].copy()
         self.ohlc = self.ohlc.rename(columns={'time':'Date','open':'Open','high':'High','low':'Low','close':'Close'})
@@ -36,11 +37,18 @@ class TradingChart():
         combined_alines, combined_colors, rewards = self.transaction_line()
         title = f'Symbol:{self.symbol}   Rewards:{rewards}'
         # os.makedirs(self.output_file, exist_ok=True)
-        mpf.plot(
-            self.ohlc, 
-            type='candle', 
-            alines = dict(alines=combined_alines, colors=combined_colors),
-            title=title,
-            savefig=dict(fname=self.output_file, dpi=300, bbox_inches="tight"),
-            )
-            
+        if self.save_plot:
+            mpf.plot(
+                self.ohlc, 
+                type='candle', 
+                alines = dict(alines=combined_alines, colors=combined_colors),
+                title=title,
+                savefig=dict(fname=self.output_file, dpi=300, bbox_inches="tight"),
+                )
+        else:    
+            mpf.plot(
+                self.ohlc, 
+                type='candle', 
+                alines = dict(alines=combined_alines, colors=combined_colors),
+                title=title,
+                )
