@@ -36,6 +36,9 @@ def render_to_file(**kwargs):
         log += done_information
     if log:
         # os.makedirs(log_filename, exist_ok=True)
+        dir_path = os.path.dirname(log_filename)
+        if dir_path and not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
         with open(log_filename, 'a+') as _f:
             _f.write(log)
             _f.close()
