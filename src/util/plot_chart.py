@@ -37,7 +37,11 @@ class TradingChart():
         combined_alines, combined_colors, rewards = self.transaction_line()
         title = f'Symbol:{self.symbol}   Rewards:{rewards}'
         # os.makedirs(self.output_file, exist_ok=True)
-        if self.save_plot:
+        if self.save_plot:        
+            dir_path = os.path.dirname(self.output_file)
+            if dir_path and not os.path.exists(dir_path):
+                os.makedirs(dir_path, exist_ok=True)
+            
             mpf.plot(
                 self.ohlc, 
                 type='candle', 
