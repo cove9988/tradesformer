@@ -29,7 +29,6 @@ def multiply_csv_files_traning(data_directory,env_config_file,asset,inital_model
     )
     # Set up the TensorBoard callback
     log_dir=f'./data/log/{asset}/'
-    # callback = CustomTensorBoardCallback(log_dir=log_dir)
     # Initialize the batch counter
     batch_num = 1
     model_filename = ''
