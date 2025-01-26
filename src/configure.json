@@ -1,23 +1,37 @@
 {
+    "data_processing": {
+        "indicator_period": 288,  
+        "required_cols": ["time","open", "high", "low", "close"],
+        "scale_cols": ["macd", "rsi_30", "atr", "dx_30"],
+        "min_bars_per_week": 1440,
+        "train_eval_split": {
+            "eval_criteria": ["nan", "zero"],
+            "base_path": "./data/split/{symbol}/",
+            "train_dir": "train",
+            "eval_dir": "eval"
+        },
+        "temporal_features": {
+            "session_hours": {
+                "london": [8, 16],
+                "new_york": [13, 21]
+            },
+            "cyclical_encoding": {
+                "minute_blocks": 12,
+                "hour_range": 24
+            }
+        }
+    },    
     "env": {
         "indicator_period": 48,
         "observation_list": [
-            "open",
-            "high",
-            "low",
-            "close",
-            "minute",
-            "hour",
-            "day",
-            "macd",
-            "boll_ub",
-            "boll_md",
-            "boll_lb",
-            "rsi_30",
-            "dx_30",
-            "close_30_sma",
-            "close_60_sma",
-            "atr"
+            "open", "high", "low", "close",
+            "hour_sin", "hour_cos", 
+            "minute_sin", "minute_cos",
+            "london_session", "ny_session",
+            "macd", "boll_ub", "boll_lb",
+            "rsi_30", "atr", "volatility_ratio",
+            "close_30_sma", "close_60_sma",
+            "returns_5", "returns_24"
         ],
         "over_night_cash_penalty": 5,
         "balance": 1000,

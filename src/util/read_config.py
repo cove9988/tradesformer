@@ -35,6 +35,12 @@ class EnvConfig():
         else:
             return self.config["symbol"][asset]
         
+    def data_processing_parameters(self, item=''):
+        """Get data processing config"""
+        if item:
+            return self.config["data_processing"][item]
+        return self.config["data_processing"]
+            
     def trading_hour(self,place="New York"):
         """forex trading hour from different markets
 

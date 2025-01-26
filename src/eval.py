@@ -64,10 +64,10 @@ def eval(data_directory, env_config_file, model_file, asset, run_time = 10, mode
         _run += 1
 
 if __name__ == "__main__":
-    asset = "EURUSD"   
+    asset = "AUDUSD"   
     env_config_file = './src/configure.json'
-    model_file = f'./data/model/{asset}/weekly/EURUSD_2023_80.zip'
+    model_file = f'./data/model/{asset}/weekly/{asset}_2022_40'
     data_directory = f"./data/split/{asset}/weekly"
     setup_logging(asset=asset, console_level=logging.ERROR, file_level=logging.INFO)
     save_plot = False
-    eval(data_directory, env_config_file, model_file, asset, run_time= 1, mode = 'human', sequence_length=48, save_plot=save_plot)
+    eval(data_directory, env_config_file, model_file, asset, run_time= 1, mode = 'both', sequence_length=48, save_plot=save_plot)
