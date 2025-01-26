@@ -33,6 +33,7 @@
             "close_30_sma", "close_60_sma",
             "returns_5", "returns_24"
         ],
+        "action_threshold": 0.5,
         "over_night_cash_penalty": 5,
         "balance": 1000,
         "symbol_col": "symbol", 
@@ -44,7 +45,7 @@
         "description":"sma, rsi and boll input in weekly with {symbol}",
         "shaping_reward": 0.1,
         "forward_window": 12,
-        "backward_window": 48,
+        "backward_window": 96, 
         "good_position_encourage": 2,
         "consistency_reward" : 0.01
     },

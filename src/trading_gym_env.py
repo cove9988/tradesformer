@@ -15,13 +15,10 @@ import numpy as np
 import datetime
 from src.util.plot_chart import TradingChart
 from src.util.log_render import render_to_file
-from src.util.action_aggregation import ActionAggregator
+
 
 logger = logging.getLogger(__name__)
-# def linear_schedule(initial_value: float):
-#     def func(progress_remaining: float) -> float:
-#         return progress_remaining * initial_value
-#     return func
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger.info(f"Using device: {device}")
 
@@ -130,7 +127,7 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
         embed_dim = 64
         num_heads = 2
 
-        self.layernorm_before = nn.LayerNorm(num_features).to(device) # Added Layer Normalization before transformer
+        self.layernorm_before = nn.LayerNorm(num_features) # Added Layer Normalization before transformer
 
         self.transformer = TimeSeriesTransformer(
             input_size=num_features,
@@ -138,7 +135,7 @@ class CustomCombinedExtractor(BaseFeaturesExtractor):
             num_heads=num_heads,
             num_layers=2,
             sequence_length =sequence_length
-        ).to(device)
+        )
 
     def forward(self, observations):
         # Apply layer normalization
@@ -192,6 +189,7 @@ class ForexTradingEnv(gym.Env):
         self.save_plot = save_plot
         self.sequence_length = sequence_length 
         self.max_steps = len(self.data) - self.sequence_length - 1
+        self.action_threshold = self.cf.env_parameters("action_threshold")  
         self.balance_initial = self.cf.env_parameters("balance")
         self.good_position_encourage = self.cf.env_parameters("good_position_encourage")
         self.consistency_reward = self.cf.env_parameters("consistency_reward")
@@ -205,7 +203,13 @@ class ForexTradingEnv(gym.Env):
         self.max_current_holding = self.cf.symbol(self.symbol_col, "max_current_holding")
 
     def _initialize_spaces(self):
-        self.action_space = spaces.Discrete(3)
+        # Continuous action: [-1=strong sell, 1=strong buy]
+        self.action_space = spaces.Box(
+            low=-1, 
+            high=1, 
+            shape=(1,), 
+            dtype=np.float32
+        )
         obs_shape = (self.sequence_length, len(self.features))
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32
@@ -219,8 +223,11 @@ class ForexTradingEnv(gym.Env):
         self.current_step = 0
         self.balance = self.balance_initial
         self.positions = []
-        self.action_aggregator =ActionAggregator()
-        
+        self.equity_curve = [self.balance_initial]
+        self.peak_equity = self.balance_initial
+        self.max_drawdown = 0.0
+        self.current_drawdown = 0.0
+                
         # self.current_step = np.random.randint(self.sequence_length, self.max_steps)
         self.current_step = self.sequence_length
         logger.info(f"--- Environment reset. Starting at step {self.current_step} --total rewards: {self.ttl_rewards}")
@@ -228,7 +235,27 @@ class ForexTradingEnv(gym.Env):
         observation = self._next_observation()
         info = {}
         return observation, info
+    
+    def _calculate_sharpe(self, risk_free_rate=0.0):
+        """Calculate Sharpe ratio for the current episode"""
+        if len(self.equity_curve) < 2:
+            return 0.0
+            
+        returns = np.diff(self.equity_curve) / self.equity_curve[:-1]
+        
+        if np.std(returns) == 0:
+            return 0.0
+            
+        sharpe = (np.mean(returns) - risk_free_rate) / np.std(returns)
+        return float(sharpe * np.sqrt(288))  # Annualized (5-min bars → 288/day)
 
+    def _calculate_drawdown(self):
+        """Update max drawdown during episode"""
+        current_equity = self.equity_curve[-1]
+        self.peak_equity = max(self.peak_equity, current_equity)
+        self.current_drawdown = (self.peak_equity - current_equity) / self.peak_equity
+        self.max_drawdown = max(self.max_drawdown, self.current_drawdown)
+        
     def _next_observation(self):
         obs = self.data.iloc[
             self.current_step - self.sequence_length : self.current_step
@@ -274,7 +301,6 @@ class ForexTradingEnv(gym.Env):
             # profit = abs(current_price - entry_price) * position['size']
             close_position_reward =  position['PT'] # Positive close_position_reward
             position["CloseTime"] = _t
-            position["pips"] += close_position_reward
             position["Status"] = 1
             position["CloseStep"] = self.current_step
             position["pips"] += close_position_reward
@@ -313,29 +339,25 @@ class ForexTradingEnv(gym.Env):
         _o, _c, _h, _l,_t,_day = self.data.iloc[self.current_step][["open","close","high","low","time","day"]]
         reward = 0.0
         position_reward = 0
-        stability_reward = 0
         action_hold_reward = 0
         
         _msg =[]
-
+        _action = action[0]  # Scalar between [-1, 1]
         open_positon = 0
         for position in self.positions:
             if position['Status'] == 0:
                 position_reward, closed,_msg = self._calculate_reward(position)
                 if not closed: open_positon += 1
                 reward += position_reward
-        # Execute action
-        _action, stability_reward = self.action_aggregator.add_action(action) 
-        if open_positon < self.max_current_holding: #only check if need to open
-            reward += stability_reward
-        # logger.info(f'Step:{self.current_step}: action: {action}, real: {_action} stability reward:{stability_reward} ')
-        if _action in (1, 2) and open_positon < self.max_current_holding :
+
+        # logger.info(f'Step:{self.current_step}: action: {action}, real: {_action} ')
+        if open_positon < self.max_current_holding and (_action >= self.action_threshold or _action <= -self.action_threshold) :  # Strong sell signal                
             self.ticket_id += 1
             position = {
                 "Ticket": self.ticket_id,
                 "Symbol": self.symbol_col,
                 "ActionTime": _t,
-                "Type": "Buy" if _action ==1 else "Sell",
+                "Type": "Buy" if _action >= self.action_threshold else "Sell",
                 "Lot": 1,
                 "ActionPrice": _c,
                 "SL": self.stop_loss,
@@ -375,7 +397,7 @@ class ForexTradingEnv(gym.Env):
 
         # Get next observation
         obs = self._next_observation()
-        _msg.append(f'---idle----step:{self.current_step}, RF:{action} Action:{_action} reward:{reward} total_rewards:{self.ttl_rewards} position_reward:{position_reward} stability_reward:{stability_reward} action_hold_reward:{action_hold_reward}')
+        _msg.append(f'---idle----step:{self.current_step}, RF:{action} Action:{_action} reward:{reward} total_rewards:{self.ttl_rewards} position_reward:{position_reward} action_hold_reward:{action_hold_reward}')
         # Convert tensors to CPU for logging or NumPy conversion
         # obs_cpu = obs.cpu().numpy()
         if done:
@@ -390,7 +412,11 @@ class ForexTradingEnv(gym.Env):
         if self.logger_show:
             for _m in _msg:
                 logger.info(_m)
-        info = {"info":_msg}
+        info = {
+            "info": _msg,
+            "sharpe_ratio": self._calculate_sharpe(),
+            "max_drawdown": self._calculate_drawdown()
+            }
         truncated = False
         return obs, reward, done, truncated, info
 

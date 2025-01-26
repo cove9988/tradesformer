@@ -75,14 +75,17 @@ def add_time_feature(df, symbol):
     
     # Cyclical time features
     df['weekday'] = df.index.dayofweek  # 0=Monday
+    df['day'] = df.index.day
+    df['week'] = df.index.isocalendar().week
+    df['month'] = df.index.month
+    df['year'] = df.index.year
     df['hour'] = df.index.hour
-    df['minute_block'] = df.index.minute // 5  # 0-11
-    
     df['hour_sin'] = np.sin(2 * np.pi * df['hour']/24).round(6)
     df['hour_cos'] = np.cos(2 * np.pi * df['hour']/24).round(6)
+    df['minute_block'] = df.index.minute // 5  # 0-11
     df['minute_sin'] = np.sin(2 * np.pi * df['minute_block']/12).round(6)
     df['minute_cos'] = np.cos(2 * np.pi * df['minute_block']/12).round(6)
-
+    
     # Market sessions (GMT)
     df['london_session'] = ((df['hour'] >= 8) & (df['hour'] < 16)).astype(int)
     df['ny_session'] = ((df['hour'] >= 13) & (df['hour'] < 21)).astype(int)
@@ -124,7 +127,7 @@ def tech_indicators(df, cf=None):  # 288 = 24hrs in 5-min bars
     df[numeric_cols] = df[numeric_cols].round(6)  
     return df
 
-def split_timeserious(df, freq='W', symbol='EURUSD',cf=None):
+def split_time_serious(df, freq='W', symbol='EURUSD',cf=None):
     """Split data with proper weekly alignment"""
     split_cfg = cf.data_processing_parameters("train_eval_split")
     base_path = split_cfg["base_path"].format(symbol=symbol)
@@ -190,7 +193,7 @@ if __name__ == '__main__':
         df = tech_indicators(df, cf=cf) 
         
         # 3. Split & save
-        split_timeserious(df, freq=freq, symbol=symbol, cf=cf)
+        split_time_serious(df, freq=freq, symbol=symbol, cf=cf)
         logger.info("Processing completed successfully")
         
     except Exception as e:

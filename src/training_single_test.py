@@ -5,11 +5,10 @@ from stable_baselines3 import PPO
 from src.trading_gym_env import ForexTradingEnv, CustomCombinedExtractor
 from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
-
+from src.util.training_callback import TrainingMetricsCallback
 logger = logging.getLogger(__name__)
 
-def single_csv_training(csv_file, env_config_file, asset, model_name =''):
-    cf = EnvConfig(env_config_file)
+def single_csv_training(csv_file, env_config_file, asset, model_name ='', cf = None):
     features = cf.env_parameters("observation_list")
     sequence_length = cf.env_parameters("backward_window")
     print(features)
@@ -39,16 +38,24 @@ def single_csv_training(csv_file, env_config_file, asset, model_name =''):
 
     # Train the agent
     logger.info("Starting model training...")
-    model.learn(total_timesteps=500000)
+    callback = TrainingMetricsCallback()
+    model.learn(
+        total_timesteps=500000,
+        callback=callback,
+        tb_log_name=f"{asset}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}",
+    )
     logger.info("Model training complete")
     model_filename = csv_file.replace("split/", "model/").replace(".csv", "_single_test.zip")
     model.save(model_filename)
 if __name__ == "__main__":
-    asset = "EURUSD"    
-    csv_file = f"./data/split/{asset}/weekly/{asset}_2024_101.csv"
-    env_config_file ='./src/configure.json'
+    asset = "EURUSD"
+    env_config_file = './src/configure.json'
+    cf = EnvConfig(env_config_file)
+    split_cfg = cf.data_processing_parameters("train_eval_split")
+    base_path = split_cfg["base_path"].format(symbol=asset)
+    csv_file = f"{base_path}/{split_cfg["train_dir"]}/{asset}_2022_22.csv"
     model_name = '' #f'./data/model/{asset}/weekly/{asset}_2023_71'
     setup_logging(asset =asset, console_level=logging.CRITICAL, file_level=logging.INFO)
-    single_csv_training(csv_file=csv_file, env_config_file =env_config_file, asset= asset, model_name=model_name)
+    single_csv_training(csv_file=csv_file, env_config_file =env_config_file, asset= asset, model_name=model_name, cf=cf)
     
 
