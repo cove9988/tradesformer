@@ -184,3 +184,9 @@ else:
     print(f'Data saved to {filename}')
 Conclusion
 The problem you're facing is due to the limitations of the data provider (Yahoo Finance) when it comes to historical intraday data. By adjusting your date range or interval, or by choosing an alternative data source, you can successfully retrieve and save the desired data for your research.
+
+
+Why This Matters for RL Training
+Approach	Pros	Cons	RL Suitability
+Global Normalization (Before Split)	Consistent scale across episodes	Data leakage between weeks	❌ Poor - leaks future info
+Per-Week Normalization (After Split)	Each week is self-contained	Harder to compare across weeks	✅ Excellent - matches RL's episodic nature

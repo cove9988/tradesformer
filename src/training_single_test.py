@@ -27,8 +27,10 @@ def single_csv_training(csv_file, env_config_file, asset, model_name =''):
         model = PPO.load(model_name, env=env, learning_rate=lr_schedule)
     else:
         model = PPO(
-            'MlpPolicy',
+            'CnnPolicy' , # support GPU
+            #'MlpPolicy', # CPU only
             env,
+            device='cuda',
             verbose=1,
             policy_kwargs=policy_kwargs,
             learning_rate=lr_schedule,  # Reduced learning rate

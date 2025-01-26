@@ -29,21 +29,22 @@ def render_to_file(**kwargs):
     _header = ''
     _header_comma = ''
     if log_header:
-        _header = f'{"Ticket":>8}{"Type":4}{"ActionTime":>16}{"ActionStep":>16} \
-                            {"ActionPrice":12}{"CloseTime":>16}{"ClosePrice":12} \
-                            {"pips":4}{"SL":4}{"PT":4}{"CloseStep":8}{"DeltaStep":8}\n'
+        _header = f'{"Ticket":>8} {"Type":>4} {"ActionStep":16} \
+                    {"ActionPrice":>12} {"CloseStep":8} {"ClosePrice":>12} \
+                    {"pips":>6} {"SL":>6} {"PT":>6} {"DeltaStep":8}\n'
+
 
         _header_comma = f'{"Ticket,Type,ActionTime,ActionStep,ActionPrice,CloseTime,ClosePrice,pips,SL,PT,CloseStep,DeltaStep"}\n'
     if transaction_close_this_step:
         for _tr in transaction_close_this_step:
             if _tr["CloseStep"] >=0:
-                tr_lines += f'{_tr["Ticket"]:>8} {_tr["Type"]:>4} {_tr["ActionTime"]:16} {_tr["ActionStep"]:16} \
-                    {_tr["ActionPrice"]:6.5f} {_tr["CloseTime"]:16} {_tr["ClosePrice"]:6.5f} \
-                    {_tr["pips"]:4.0f} {_tr["SL"]:4.0f} {_tr["PT"]:4.0f} {_tr["CloseStep"]:8} {_tr["DeltaStep"]:8}\n'
+                tr_lines += f'{_tr["Ticket"]:>8} {_tr["Type"]:>4} {_tr["ActionStep"]:16} \
+                    {_tr["ActionPrice"]:6.5f} {_tr["CloseStep"]:8} {_tr["ClosePrice"]:6.5f} \
+                    {_tr["pips"]:4.0f} {_tr["SL"]:4.0f} {_tr["PT"]:4.0f} {_tr["DeltaStep"]:8}\n'
 
-                tr_lines_comma += f'{_tr["Ticket"]:>8},{_tr["Type"]:>4},{_tr["ActionTime"]:>16},{_tr["ActionStep"]:16}, \
-                    {_tr["ActionPrice"]:6.5f},{_tr["CloseTime"]:16},{_tr["ClosePrice"]:6.5f}, \
-                    {_tr["pips"]:4.0f},{_tr["SL"]:4.0f},{_tr["PT"]:4.0f},{_tr["CloseStep"]:8},{_tr["DeltaStep"]:8}\n'
+                tr_lines_comma += f'{_tr["Ticket"]},{_tr["Type"]},{_tr["ActionTime"]},{_tr["ActionStep"]}, \
+                    {_tr["ActionPrice"]},{_tr["CloseTime"]},{_tr["ClosePrice"]}, \
+                    {_tr["pips"]},{_tr["SL"]},{_tr["PT"]},{_tr["CloseStep"]},{_tr["DeltaStep"]}\n'
 
     log = _header_comma + tr_lines_comma
     # log = f"Step: {current_step}   Balance: {balance}, Profit: {profit} \
@@ -59,7 +60,7 @@ def render_to_file(**kwargs):
             _f.write(log)
             _f.close()
 
-    tr_lines += _header
+    tr_lines = _header + tr_lines
     if printout and tr_lines:
         print(tr_lines)
         if done_information:
