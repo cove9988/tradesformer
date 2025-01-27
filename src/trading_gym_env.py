@@ -72,7 +72,7 @@ class TimeSeriesTransformer(nn.Module):
             d_model=embed_dim,
             nhead=num_heads,
             dropout=dropout,
-            norm_first=True  # Apply LayerNorm before attention and feedforward
+            norm_first=False  # Best if you want to enable nested tensor optimization
         ).to(device)
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer,

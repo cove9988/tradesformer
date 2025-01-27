@@ -25,7 +25,7 @@ def single_csv_training(csv_file, env_config_file, asset, model_name ='', cf = N
     policy_kwargs = dict(
         features_extractor_class=CustomCombinedExtractor,
         features_extractor_kwargs=dict(sequence_length=sequence_length),
-        net_arch=[dict(pi=[256, 256], vf=[256, 256])],
+        net_arch=dict(pi=[256, 256], vf=[256, 256]),
         activation_fn=nn.ReLU,
         ortho_init=False # better for finacial data
     )

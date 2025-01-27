@@ -1,43 +1,17 @@
-[tool.poetry]
+[project]
 name = "tradesformer"
-version = "0.2.1"
-description = ""
+version ="0.2.1"
 license = "MIT"  
 repository = "https://github.com/cove9988/tradesformer"
 authors = ["paulg <cove9988@gmail.com>"]
 readme = "README.md"
-packages = [
-    { include = "src" },
-    { include = "src/configure.json"}  # Example: Include data folder
+requires-python = ">=3.12"
+dependencies = [
+    "finta>=1.3",
+    "mplfinance>=0.12.10b0",
+    "numpy>=2.2.2",
+    "pandas>=2.2.3",
+    "scikit-learn>=1.6.1",
+    "stable-baselines3>=2.3.2",
+    "torch>=2.5.1",
 ]
-
-[tool.poetry.dependencies]
-# python = "^3.10"
-# numpy = ">=2.1.1,<3.0.0"       # Match tradesformer requirement
-# pandas = ">=2.2.0,<2.3.0"      # Ensure compatibility
-# scikit-learn = "^1.5.2"
-# torch = "^2.4.1"
-# tensorboard = "<2.16,>=2.15"
-# mplfinance = "^0.12.10b0"
-# finta = "^1.3"
-# gymnasium = ">=0.28.1,<1.1.0"
-# stable-baselines3 = ">=2.3.2"
-
-python = "^3.10"
-numpy = ">=1.23.5,<2.0"
-pandas = "^2.2.2"
-scikit-learn = "^1.5.2"
-torch = "^2.4.1"
-stable-baselines3 = "^2.3.2"
-tensorboard = "^2.17.1"
-mplfinance = "^0.12.10b0"
-finta = "^1.3"
-
-
-
-[tool.poetry.group.dev.dependencies]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
