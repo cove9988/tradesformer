@@ -24,10 +24,10 @@
     "env": {
         "indicator_period": 48,
         "observation_list": [
-            "open", "high", "low", "close",
+            "mean_std_open", "mean_std_high", "mean_std_low", "mean_std_close",
             "hour_sin", "hour_cos", 
             "minute_sin", "minute_cos",
-            "london_session", "ny_session",
+            "london_session", "ny_session","overlap_session",
             "macd", "boll_ub", "boll_lb",
             "rsi_30", "atr", "volatility_ratio",
             "close_30_sma", "close_60_sma",

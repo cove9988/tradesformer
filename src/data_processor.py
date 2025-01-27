@@ -97,7 +97,9 @@ def add_time_feature(df, symbol):
 def tech_indicators(df, cf=None):  # 288 = 24hrs in 5-min bars
     """Calculate technical indicators with proper NaN handling"""
     period = cf.data_processing_parameters("indicator_period")
-    scale_cols = cf.data_processing_parameters("scale_cols")    
+    # 1. Preserve raw prices before normalization
+    raw_cols = ['mean_std_open','mean_std_high','mean_std_low','mean_std_close']
+    df[raw_cols] = df[['open','high','low','close']].copy()
     # Calculate indicators
     df['macd'] = TA.MACD(df).SIGNAL.ffill().round(6)
     bb = TA.BBANDS(df)
@@ -116,7 +118,8 @@ def tech_indicators(df, cf=None):  # 288 = 24hrs in 5-min bars
         
     # Normalize
     scaler = StandardScaler()
-    scale_cols = ['macd', 'rsi_30', 'atr', 'dx_30']
+    scale_cols = cf.data_processing_parameters("scale_cols")  
+
     df[scale_cols] = scaler.fit_transform(df[scale_cols])
     df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
     # 1. Identify numeric columns
@@ -124,7 +127,7 @@ def tech_indicators(df, cf=None):  # 288 = 24hrs in 5-min bars
     # 2. Apply clipping only to numeric features
     df[numeric_cols] = df[numeric_cols].clip(lower=-1e5, upper=1e5)
     # 3. Round decimal values
-    df[numeric_cols] = df[numeric_cols].round(6)  
+    df[numeric_cols] = df[numeric_cols].round(6).clip(-1e5, 1e5)
     return df
 
 def split_time_serious(df, freq='W', symbol='EURUSD',cf=None):
@@ -168,7 +171,7 @@ def split_time_serious(df, freq='W', symbol='EURUSD',cf=None):
 
 def normalize_features(df):
     """Z-score normalization instead of pivot-based"""
-    price_cols = ['open', 'high', 'low', 'close']
+    price_cols = ['mean_std_open', 'mean_std_high', 'mean_std_low', 'mean_std_close']
     df[price_cols] = ((df[price_cols] - df[price_cols].mean()) / df[price_cols].std()).round(6)
     return df
 

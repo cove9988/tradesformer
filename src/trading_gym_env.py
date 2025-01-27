@@ -191,6 +191,7 @@ class ForexTradingEnv(gym.Env):
         self.max_steps = len(self.data) - self.sequence_length - 1
         self.action_threshold = self.cf.env_parameters("action_threshold")  
         self.balance_initial = self.cf.env_parameters("balance")
+        self.forward_window = self.cf.env_parameters("forward_window")
         self.good_position_encourage = self.cf.env_parameters("good_position_encourage")
         self.consistency_reward = self.cf.env_parameters("consistency_reward")
         self.shaping_reward = self.cf.env_parameters("shaping_reward")
@@ -201,7 +202,7 @@ class ForexTradingEnv(gym.Env):
         self.transaction_fee = self.cf.symbol(self.symbol_col, "transaction_fee")
         self.over_night_penalty = self.cf.symbol(self.symbol_col, "over_night_penalty")
         self.max_current_holding = self.cf.symbol(self.symbol_col, "max_current_holding")
-
+        # assert np.allclose(self.data[features].mean(), 0, atol=1e-3), "Bad normalization!"
     def _initialize_spaces(self):
         # Continuous action: [-1=strong sell, 1=strong buy]
         self.action_space = spaces.Box(
@@ -349,15 +350,21 @@ class ForexTradingEnv(gym.Env):
                 position_reward, closed,_msg = self._calculate_reward(position)
                 if not closed: open_positon += 1
                 reward += position_reward
-
-        # logger.info(f'Step:{self.current_step}: action: {action}, real: {_action} ')
-        if open_positon < self.max_current_holding and (_action >= self.action_threshold or _action <= -self.action_threshold) :  # Strong sell signal                
+        # Strong sell signal                
+        if _action >= self.action_threshold :
+            action_name = "Buy"    
+        elif _action <= -self.action_threshold :
+            action_name = "Sell"
+        else:
+            action_name = "Hold"
+            
+        if open_positon < self.max_current_holding and action_name in ["Buy", "Sell"] : 
             self.ticket_id += 1
             position = {
                 "Ticket": self.ticket_id,
                 "Symbol": self.symbol_col,
                 "ActionTime": _t,
-                "Type": "Buy" if _action >= self.action_threshold else "Sell",
+                "Type": action_name,
                 "Lot": 1,
                 "ActionPrice": _c,
                 "SL": self.stop_loss,
@@ -381,7 +388,8 @@ class ForexTradingEnv(gym.Env):
             # reward = self.transaction_fee #open cost
             self.balance -= 100 # hold up, this will make sure model can not open a lot of
             _msg.append(f'Step:{self.current_step} Tkt:{position["Ticket"]} {position["Type"]} Rwd:{position["pips"]} SL:{position["SL"]} PT:{position["PT"]}')
-        elif open_positon < self.max_current_holding and action == 0:
+        
+        elif open_positon < self.max_current_holding and action_name in ("Hold") :
             action_hold_reward = -1 # no open any position, encourage open position
         else:
             action_hold_reward = 0
@@ -397,7 +405,7 @@ class ForexTradingEnv(gym.Env):
 
         # Get next observation
         obs = self._next_observation()
-        _msg.append(f'---idle----step:{self.current_step}, RF:{action} Action:{_action} reward:{reward} total_rewards:{self.ttl_rewards} position_reward:{position_reward} action_hold_reward:{action_hold_reward}')
+        _msg.append(f'---idle----step:{self.current_step}, RF:{action_name} Action:{_action} reward:{reward} total_rewards:{self.ttl_rewards} position_reward:{position_reward} action_hold_reward:{action_hold_reward}')
         # Convert tensors to CPU for logging or NumPy conversion
         # obs_cpu = obs.cpu().numpy()
         if done:
