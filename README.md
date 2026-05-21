@@ -316,5 +316,38 @@ Vaswani, A., et al. (2017). Attention is all you need. Link
 OpenAI Baselines: GitHub Repository
 Stable Baselines3 Documentation: Link
 PyTorch Documentation: Link
-TA-Lib Technical Analysis Library: Link# tradesformer
-A new approach to Forex trading using PPO with Gym. The strategy incorporates multiple FX pairs into a single environment, enabling simultaneous decision-making, pair selection, and hedging opportunities. The environment is designed for weekly-based Forex trading, focusing on optimizing Sharpe ratios, win rates, and overall portfolio management.
+TA-Lib Technical Analysis Library: Link
+
+# TimeFM-first preprocessing update
+This branch is moving to a new TimeFM-first data pipeline and is intentionally not maintaining backward compatibility with the older PPO-era feature design.
+
+Key changes:
+- weekly z-score normalization is removed
+- PPO-era indicator-heavy observation design is removed
+- new causal weekly features focus on:
+  - week-open-relative price path
+  - multi-horizon returns
+  - realized volatility and ATR-relative regime features
+  - relative moving-average trend features
+  - bar-structure features
+  - session and weekly-progress context
+- raw OHLC are retained for downstream execution/backtesting logic
+
+Main files:
+- `src/timefm_features.py`
+- `src/data_processor.py`
+- `src/timefm_dataset.py`
+- `src/configure.json`
+
+Current intended preprocessing command:
+- `python -m src.data_processor EURUSD`
+
+Output path:
+- `data/split/{symbol}/weekly/train/*.csv`
+
+Dataset adapter:
+- `src.timefm_dataset.build_timefm_dataset_from_config(data_directory)` builds a grid keyed by `(context_window, forecast_horizon)`
+- it uses config defaults from `target_series`, `context_windows`, and `forecast_horizons`
+- each sample contains past target values, past dynamic covariates, future target values, and timestamp boundaries
+
+This preprocessing is designed for forecasting experiments first. Forecast quality should be validated before building deterministic trading rules or any later execution layer.

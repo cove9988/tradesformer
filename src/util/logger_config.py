@@ -3,8 +3,10 @@ import datetime
 import logging
 
 def setup_logging(asset, console_level=logging.INFO, file_level=logging.DEBUG):
-    """Set up logging configuration."""  
-    log_file =f"./data/log/{asset}_{datetime.datetime.now():%Y%m%d}.log"
+    """Set up logging configuration."""
+    log_dir = "./data/log"
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = f"{log_dir}/{asset}_{datetime.datetime.now():%Y%m%d}.log"
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     formatter = logging.Formatter(log_format)
 

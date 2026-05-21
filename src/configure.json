@@ -1,53 +1,61 @@
 {
     "data_processing": {
-        "indicator_period": 288,  
-        "required_cols": ["time","open", "high", "low", "close"],
-        "scale_cols": ["macd", "rsi_30", "atr", "dx_30"],
+        "required_cols": ["time", "open", "high", "low", "close"],
         "min_bars_per_week": 1440,
         "train_eval_split": {
-            "eval_criteria": ["nan", "zero"],
-            "base_path": "./data/split/{symbol}/",
+            "base_path": "./data/split/{symbol}/weekly",
             "train_dir": "train",
             "eval_dir": "eval"
-        },
-        "temporal_features": {
-            "session_hours": {
-                "london": [8, 16],
-                "new_york": [13, 21]
-            },
-            "cyclical_encoding": {
-                "minute_blocks": 12,
-                "hour_range": 24
-            }
         }
-    },    
+    },
     "env": {
-        "indicator_period": 48,
         "observation_list": [
-            "mean_std_open", "mean_std_high", "mean_std_low", "mean_std_close",
-            "hour_sin", "hour_cos", 
-            "minute_sin", "minute_cos",
-            "london_session", "ny_session","overlap_session",
-            "macd", "boll_ub", "boll_lb",
-            "rsi_30", "atr", "volatility_ratio",
-            "close_30_sma", "close_60_sma",
-            "returns_5", "returns_24"
+            "close_rel_week_open",
+            "high_rel_week_open",
+            "low_rel_week_open",
+            "open_rel_week_open",
+            "returns_12",
+            "returns_48",
+            "returns_96",
+            "returns_288",
+            "realized_vol_48",
+            "realized_vol_96",
+            "realized_vol_288",
+            "atr_rel",
+            "close_vs_sma_288",
+            "close_vs_sma_576",
+            "sma_288_vs_sma_576",
+            "bar_range",
+            "bar_body",
+            "close_loc_in_bar",
+            "hour_sin",
+            "hour_cos",
+            "minute_sin",
+            "minute_cos",
+            "london_session",
+            "ny_session",
+            "overlap_session",
+            "week_progress"
         ],
-        "action_threshold": 0.5,
-        "over_night_cash_penalty": 5,
+        "target_series": "log_return_1",
+        "forecast_objective": "cumulative_log_return",
+        "direction_thresholds": {
+            "12": {
+                "positive": 0.001,
+                "negative": -0.001
+            },
+            "24": {
+                "positive": 0.0015,
+                "negative": -0.0015
+            }
+        },
         "balance": 1000,
-        "symbol_col": "symbol", 
+        "symbol_col": "symbol",
         "time_col": "time",
-        "random_start": true,
-        "log_filename": "./data/log/log_{symbol}",
-        "do_nothing": 0.1,
-        "title":"{symbol} 5M weekly",
-        "description":"sma, rsi and boll input in weekly with {symbol}",
-        "shaping_reward": 0.1,
-        "forward_window": 12,
-        "backward_window": 96, 
-        "good_position_encourage": 2,
-        "consistency_reward" : 0.01
+        "title": "{symbol} TimeFM weekly",
+        "description": "TimeFM-first weekly FX dataset with causal relative-price, volatility, and session context features",
+        "context_windows": [96, 192, 288],
+        "forecast_horizons": [12, 24]
     },
     "symbol": {
         "GBPUSD": {
@@ -71,7 +79,6 @@
             "max_current_holding": 1,
             "limit_order": false,
             "limit_order_expiration": 5
-
         },
         "AUDUSD": {
             "point": 100000,
@@ -83,24 +90,12 @@
             "max_current_holding": 1,
             "limit_order": false,
             "limit_order_expiration": 5
-
-        }        
+        }
     },
-    "trading_hour":{
-        "Sydney":{"from":0,"to":0},
-        "Tokyo":{"from":0,"to":0},
-        "London":{"from":0,"to":0},
-        "New York":{"from":0,"to":0}
-    },
-    "ploting":{
-        "buy":{"color":"red","shape":""},
-        "sell":{"color":"green","shape":""},
-        "macd":{"color":"yellow","shape":""},
-        "boll_ub":{"color":"blue","shape":""},
-        "boll_lb":{"color":"purple","shape":""},
-        "rsi_30":{"color":"white","shape":""},
-        "dx_30":{"color":"pink","shape":""},
-        "close_30_sma":{"color":"orange","shape":""},
-        "close_60_sma":{"color":"grey","shape":""}        
+    "trading_hour": {
+        "Sydney": {"from": 0, "to": 0},
+        "Tokyo": {"from": 0, "to": 0},
+        "London": {"from": 0, "to": 0},
+        "New York": {"from": 0, "to": 0}
     }
 }

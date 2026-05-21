@@ -1,5 +1,8 @@
 import json
 
+from src.timefm_features import TIMEFM_OBSERVATION_COLUMNS
+
+
 class EnvConfig():
     """environment configuration from json file
        tgym requires you configure your own parameters in json file.
@@ -9,17 +12,17 @@ class EnvConfig():
     """
     def __init__(self,config_file):
         self.config = {}
-        with open(config_file) as j: 
+        with open(config_file) as j:
             self.config = json.load(j)
 
-    def env_parameters(self,item=''):   
-        """environment variables 
-        """ 
+    def env_parameters(self,item=''):
+        """environment variables
+        """
         if item:
             return self.config["env"][item]
         else:
             return self.config["env"]
-        
+
     def symbol(self, asset="GBPUSD", item='') :
         """get trading pair (symbol) information
 
@@ -34,13 +37,16 @@ class EnvConfig():
             return self.config["symbol"][asset][item]
         else:
             return self.config["symbol"][asset]
-        
+
     def data_processing_parameters(self, item=''):
         """Get data processing config"""
         if item:
             return self.config["data_processing"][item]
         return self.config["data_processing"]
-            
+
+    def timefm_observation_list(self):
+        return list(TIMEFM_OBSERVATION_COLUMNS)
+
     def trading_hour(self,place="New York"):
         """forex trading hour from different markets
 
@@ -54,8 +60,8 @@ class EnvConfig():
             return self.config["trading_hour"][place]
         else:
             return self.config["trading_hour"]
-    
-if __name__ == '__main__':    
+
+if __name__ == '__main__':
     env_config_file ='/home/paulg/github/tradesformer/src/configure.json'
     cf = EnvConfig(env_config_file)
     print(f'{cf.env_parameters()}')
