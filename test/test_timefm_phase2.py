@@ -117,6 +117,7 @@ class TimeFMLoaderSpikeTest(unittest.TestCase):
 
 
 class TimeFMRealBackendWiringTest(unittest.TestCase):
+    @unittest.skip("v1 JAX/PAX backend retired — replaced by timesfm-2.5-transformers")
     def test_load_model_builds_pypi_timesfm_v1_backend_from_actual_api(self):
         class StubTimesFm:
             def __init__(self, **kwargs):
@@ -148,6 +149,7 @@ class TimeFMRealBackendWiringTest(unittest.TestCase):
 
 
 class TimeFMActualForecastApiTest(unittest.TestCase):
+    @unittest.skip("v1 JAX/PAX backend retired — replaced by timesfm-2.5-transformers")
     def test_forecast_sample_supports_timesfm_forecast_api(self):
         sample = TimeFMForecasterTest()._sample()
 

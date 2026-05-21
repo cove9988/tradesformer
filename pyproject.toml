@@ -32,7 +32,10 @@ stable-baselines3 = "^2.3.2"
 tensorboard = "^2.17.1"
 mplfinance = "^0.12.10b0"
 finta = "^1.3"
-timesfm = "^1.0.0"
+# timesfm v1 (JAX/PAX) retired — use HuggingFace Transformers path instead
+transformers = ">=4.50.0"
+accelerate = ">=0.30.0"
+peft = ">=0.10.0"
 
 
 

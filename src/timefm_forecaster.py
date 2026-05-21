@@ -159,7 +159,10 @@ def load_model(
 def _coerce_to_numpy_1d(tensor_like, length: int) -> np.ndarray:
     """Convert a tensor-like [1, N] or [N] to a 1-D numpy float array of `length`."""
     if hasattr(tensor_like, "numpy"):
-        arr = tensor_like.numpy()
+        try:
+            arr = tensor_like.numpy()
+        except RuntimeError:
+            arr = tensor_like.detach().numpy()
     elif hasattr(tensor_like, "detach"):
         arr = tensor_like.detach().cpu().numpy()
     else:

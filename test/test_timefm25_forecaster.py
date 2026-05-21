@@ -225,9 +225,9 @@ class TransformersInferenceCallTest(unittest.TestCase):
 
         last_call = handle.model._calls[-1]
         pv = last_call["past_values"]
-        # must be a 2D tensor [1, context_window] or 1D [context_window]
-        numel = pv.numel() if hasattr(pv, "numel") else len(pv)
-        self.assertEqual(numel, self._sample.context_window)
+        # may be [1, context_window] or [context_window] — count total scalars
+        arr = np.asarray(pv)
+        self.assertEqual(arr.size, self._sample.context_window)
 
 
 # ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ def build_spike_report(
     context_window: int,
     forecast_horizon: int,
     backend_name: str = "fake-timesfm",
-    model_id: str = "google/timesfm-1.0-200m",
+    model_id: str = "google/timesfm-2.5-200m-transformers",
 ) -> dict[str, object]:
     samples = build_timefm_samples_from_file(
         csv_path,
@@ -49,7 +49,7 @@ def main() -> None:
     parser.add_argument("--context-window", type=int, default=96)
     parser.add_argument("--forecast-horizon", type=int, default=12)
     parser.add_argument("--backend-name", default="fake-timesfm")
-    parser.add_argument("--model-id", default="google/timesfm-1.0-200m")
+    parser.add_argument("--model-id", default="google/timesfm-2.5-200m-transformers")
     args = parser.parse_args()
 
     report = build_spike_report(
