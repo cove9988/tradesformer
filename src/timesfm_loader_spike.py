@@ -4,8 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
-from src.timefm_dataset import build_timefm_samples_from_file
-from src.timefm_forecaster import forecast_sample, load_model
+from src.timesfm_dataset import build_timesfm_samples_from_file
+from src.timesfm_forecaster import forecast_sample, load_model
 
 
 def build_spike_report(
@@ -17,7 +17,7 @@ def build_spike_report(
     backend_name: str = "fake-timesfm",
     model_id: str = "google/timesfm-2.5-200m-transformers",
 ) -> dict[str, object]:
-    samples = build_timefm_samples_from_file(
+    samples = build_timesfm_samples_from_file(
         csv_path,
         context_window=context_window,
         forecast_horizon=forecast_horizon,

@@ -22,7 +22,7 @@ def _fake_series(n: int = 300, seed: int = 0) -> np.ndarray:
 class ParseArgsTest(unittest.TestCase):
 
     def setUp(self):
-        from src.timefm25_finetune import parse_args
+        from src.timesfm25_finetune import parse_args
         self.parse_args = parse_args
 
     def test_default_model_id(self):
@@ -72,7 +72,7 @@ class ParseArgsTest(unittest.TestCase):
 class BuildDatasetsTest(unittest.TestCase):
 
     def test_returns_train_and_val_tuple(self):
-        from src.timefm25_finetune import build_datasets
+        from src.timesfm25_finetune import build_datasets
         series = [_fake_series(300) for _ in range(10)]
         train_ds, val_ds = build_datasets(
             series_list=series,
@@ -85,7 +85,7 @@ class BuildDatasetsTest(unittest.TestCase):
         self.assertGreater(len(val_ds), 0)
 
     def test_train_item_shapes(self):
-        from src.timefm25_finetune import build_datasets
+        from src.timesfm25_finetune import build_datasets
         series = [_fake_series(300) for _ in range(5)]
         train_ds, _ = build_datasets(series, 64, 12, num_samples=10)
         ctx, tgt = train_ds[0]
@@ -93,7 +93,7 @@ class BuildDatasetsTest(unittest.TestCase):
         self.assertEqual(np.asarray(tgt).shape, (12,))
 
     def test_val_item_shapes(self):
-        from src.timefm25_finetune import build_datasets
+        from src.timesfm25_finetune import build_datasets
         series = [_fake_series(300) for _ in range(5)]
         _, val_ds = build_datasets(series, 64, 12, num_samples=10)
         ctx, tgt = val_ds[0]
@@ -108,18 +108,18 @@ class BuildDatasetsTest(unittest.TestCase):
 class MakeLoraConfigTest(unittest.TestCase):
 
     def test_lora_r_and_alpha_are_set(self):
-        from src.timefm25_finetune import make_lora_config
+        from src.timesfm25_finetune import make_lora_config
         cfg = make_lora_config(r=4, lora_alpha=8, lora_dropout=0.05)
         self.assertEqual(cfg.r, 4)
         self.assertEqual(cfg.lora_alpha, 8)
 
     def test_target_modules_is_all_linear(self):
-        from src.timefm25_finetune import make_lora_config
+        from src.timesfm25_finetune import make_lora_config
         cfg = make_lora_config(r=4, lora_alpha=8, lora_dropout=0.05)
         self.assertEqual(cfg.target_modules, "all-linear")
 
     def test_bias_is_none(self):
-        from src.timefm25_finetune import make_lora_config
+        from src.timesfm25_finetune import make_lora_config
         cfg = make_lora_config(r=4, lora_alpha=8, lora_dropout=0.05)
         self.assertEqual(cfg.bias, "none")
 
@@ -146,10 +146,10 @@ class RunTrainingTest(unittest.TestCase):
         return StubModel()
 
     def test_run_training_returns_best_val_loss(self):
-        from src.timefm25_finetune import run_training
+        from src.timesfm25_finetune import run_training
 
         series = [_fake_series(300) for _ in range(5)]
-        train_ds, val_ds = __import__("src.timefm25_finetune", fromlist=["build_datasets"]).build_datasets(
+        train_ds, val_ds = __import__("src.timesfm25_finetune", fromlist=["build_datasets"]).build_datasets(
             series, 64, 12, num_samples=8
         )
 
@@ -173,7 +173,7 @@ class RunTrainingTest(unittest.TestCase):
         self.assertIsInstance(best, float)
 
     def test_run_training_calls_save_pretrained(self):
-        from src.timefm25_finetune import run_training, build_datasets
+        from src.timesfm25_finetune import run_training, build_datasets
 
         series = [_fake_series(300) for _ in range(5)]
         train_ds, val_ds = build_datasets(series, 64, 12, num_samples=4)

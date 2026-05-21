@@ -1,12 +1,12 @@
 """TimesFM 2.5 LoRA fine-tuning script.
 
 Local development and testing:
-    python src/timefm25_finetune.py --data-dir data/split/EURUSD/weekly/train \
+    python src/timesfm25_finetune.py --data-dir data/split/EURUSD/weekly/train \
         --context-len 64 --horizon-len 12 --epochs 2 --batch-size 8 \
         --backend fake --output-dir /tmp/test_lora
 
 Colab / GPU training (push repo to GitHub, clone in Colab):
-    python src/timefm25_finetune.py \
+    python src/timesfm25_finetune.py \
         --data-dir data/split/EURUSD/weekly/train \
         --context-len 64 --horizon-len 12 \
         --epochs 10 --batch-size 32 \
@@ -29,7 +29,7 @@ from typing import Any
 
 import numpy as np
 
-from src.timefm25_torch_dataset import (
+from src.timesfm25_torch_dataset import (
     TimeSeriesLastWindowDataset,
     TimeSeriesRandomWindowDataset,
     load_series_from_dir,

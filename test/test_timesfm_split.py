@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.timefm_split import (
+from src.timesfm_split import (
     build_split_manifest,
     load_split_manifest,
     parse_weekly_csv_path,

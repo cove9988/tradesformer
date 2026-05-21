@@ -1,4 +1,4 @@
-"""Failing tests for src/timefm25_torch_dataset.py.
+"""Failing tests for src/timesfm25_torch_dataset.py.
 
 These describe the Dataset contract before implementation exists.
 All torch imports are guarded so tests run without torch installed.
@@ -50,7 +50,7 @@ class RandomWindowDatasetTest(unittest.TestCase):
         self.num_samples = 50
 
     def _make_ds(self, **kwargs):
-        from src.timefm25_torch_dataset import TimeSeriesRandomWindowDataset
+        from src.timesfm25_torch_dataset import TimeSeriesRandomWindowDataset
         return TimeSeriesRandomWindowDataset(
             series_list=self.series_list,
             context_len=self.context_len,
@@ -105,7 +105,7 @@ class RandomWindowDatasetTest(unittest.TestCase):
         )
 
     def test_raises_if_no_series_long_enough(self):
-        from src.timefm25_torch_dataset import TimeSeriesRandomWindowDataset
+        from src.timesfm25_torch_dataset import TimeSeriesRandomWindowDataset
         short = [_make_series(10)]
         with self.assertRaises(ValueError):
             TimeSeriesRandomWindowDataset(short, context_len=64, horizon_len=12)
@@ -134,7 +134,7 @@ class LastWindowDatasetTest(unittest.TestCase):
         self.horizon_len = 12
 
     def _make_ds(self):
-        from src.timefm25_torch_dataset import TimeSeriesLastWindowDataset
+        from src.timesfm25_torch_dataset import TimeSeriesLastWindowDataset
         return TimeSeriesLastWindowDataset(
             series_list=self.series_list,
             context_len=self.context_len,
@@ -152,7 +152,7 @@ class LastWindowDatasetTest(unittest.TestCase):
         self.assertEqual(np.asarray(target).shape, (self.horizon_len,))
 
     def test_last_window_uses_tail_of_series(self):
-        from src.timefm25_torch_dataset import TimeSeriesLastWindowDataset
+        from src.timesfm25_torch_dataset import TimeSeriesLastWindowDataset
         series = np.arange(100, dtype=np.float32)
         ds = TimeSeriesLastWindowDataset([series], context_len=10, horizon_len=5)
         ctx, tgt = ds[0]
@@ -160,7 +160,7 @@ class LastWindowDatasetTest(unittest.TestCase):
         np.testing.assert_array_equal(np.asarray(tgt), series[95:100])
 
     def test_short_series_are_excluded(self):
-        from src.timefm25_torch_dataset import TimeSeriesLastWindowDataset
+        from src.timesfm25_torch_dataset import TimeSeriesLastWindowDataset
         series_list = [_make_series(200), _make_series(5), _make_series(200)]
         ds = TimeSeriesLastWindowDataset(series_list, context_len=64, horizon_len=12)
         self.assertEqual(len(ds), 2)  # only 2 are long enough
@@ -173,7 +173,7 @@ class LastWindowDatasetTest(unittest.TestCase):
 class LoadSeriesFromDirTest(unittest.TestCase):
 
     def test_returns_list_of_numpy_arrays(self):
-        from src.timefm25_torch_dataset import load_series_from_dir
+        from src.timesfm25_torch_dataset import load_series_from_dir
         with tempfile.TemporaryDirectory() as tmpdir:
             p = Path(tmpdir)
             _write_csv(p / "EURUSD_2023_01.csv", n_rows=200)
@@ -185,7 +185,7 @@ class LoadSeriesFromDirTest(unittest.TestCase):
             self.assertEqual(s.dtype, np.float32)
 
     def test_series_length_matches_csv_rows(self):
-        from src.timefm25_torch_dataset import load_series_from_dir
+        from src.timesfm25_torch_dataset import load_series_from_dir
         with tempfile.TemporaryDirectory() as tmpdir:
             p = Path(tmpdir)
             _write_csv(p / "EURUSD_2023_01.csv", n_rows=150)
@@ -193,7 +193,7 @@ class LoadSeriesFromDirTest(unittest.TestCase):
         self.assertEqual(len(series[0]), 150)
 
     def test_dropna_removes_nan_values(self):
-        from src.timefm25_torch_dataset import load_series_from_dir
+        from src.timesfm25_torch_dataset import load_series_from_dir
         with tempfile.TemporaryDirectory() as tmpdir:
             p = Path(tmpdir)
             path = p / "EURUSD_2023_01.csv"
@@ -207,7 +207,7 @@ class LoadSeriesFromDirTest(unittest.TestCase):
         self.assertFalse(np.isnan(series[0]).any())
 
     def test_non_csv_files_are_ignored(self):
-        from src.timefm25_torch_dataset import load_series_from_dir
+        from src.timesfm25_torch_dataset import load_series_from_dir
         with tempfile.TemporaryDirectory() as tmpdir:
             p = Path(tmpdir)
             _write_csv(p / "EURUSD_2023_01.csv", n_rows=100)
@@ -216,7 +216,7 @@ class LoadSeriesFromDirTest(unittest.TestCase):
         self.assertEqual(len(series), 1)
 
     def test_missing_directory_raises(self):
-        from src.timefm25_torch_dataset import load_series_from_dir
+        from src.timesfm25_torch_dataset import load_series_from_dir
         with self.assertRaises(FileNotFoundError):
             load_series_from_dir("/does/not/exist", target_col="log_return_1")
 

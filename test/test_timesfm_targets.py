@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.timefm_dataset import build_timefm_dataset_grid, build_timefm_samples_for_split
-from src.timefm_split import build_split_manifest, write_split_manifest
-from src.timefm_targets import summarize_future_targets
+from src.timesfm_dataset import build_timesfm_dataset_grid, build_timesfm_samples_for_split
+from src.timesfm_split import build_split_manifest, write_split_manifest
+from src.timesfm_targets import summarize_future_targets
 
 
 class TimeFMTargetsTest(unittest.TestCase):
@@ -59,7 +59,7 @@ class TimeFMDatasetSplitLoadingTest(unittest.TestCase):
             manifest_path = base / "manifest.json"
             write_split_manifest(manifest_path, manifest)
 
-            samples = build_timefm_samples_for_split(
+            samples = build_timesfm_samples_for_split(
                 data_directory=data_dir,
                 manifest_path=manifest_path,
                 split_name="val",
@@ -85,7 +85,7 @@ class TimeFMDatasetSplitLoadingTest(unittest.TestCase):
             week_10.to_csv(data_dir / "EURUSD_2024_10.csv", index=False)
             week_2.to_csv(data_dir / "EURUSD_2024_2.csv", index=False)
 
-            grid = build_timefm_dataset_grid(
+            grid = build_timesfm_dataset_grid(
                 data_directory=data_dir,
                 context_windows=[3],
                 forecast_horizons=[2],

@@ -4,11 +4,11 @@ from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
-from src.timefm_features import (
-    TIMEFM_OBSERVATION_COLUMNS,
-    add_causal_timefm_features,
+from src.timesfm_features import (
+    TIMESFM_OBSERVATION_COLUMNS,
+    add_causal_timesfm_features,
     add_time_context_features,
-    validate_timefm_week,
+    validate_timesfm_week,
 )
 
 
@@ -31,7 +31,7 @@ class TimeFMFeaturesTest(unittest.TestCase):
     def test_week_open_relative_features_anchor_to_first_open(self):
         df = self._sample_week(bars=600)
         df = add_time_context_features(df, symbol="EURUSD")
-        result = add_causal_timefm_features(df, point=100000)
+        result = add_causal_timesfm_features(df, point=100000)
 
         first = result.iloc[0]
         self.assertAlmostEqual(first["open_rel_week_open"], 0.0, places=6)
@@ -43,7 +43,7 @@ class TimeFMFeaturesTest(unittest.TestCase):
     def test_returns_and_week_progress_are_causal(self):
         df = self._sample_week(bars=600)
         df = add_time_context_features(df, symbol="EURUSD")
-        result = add_causal_timefm_features(df, point=100000)
+        result = add_causal_timesfm_features(df, point=100000)
 
         self.assertTrue(math.isnan(result.iloc[0]["returns_12"]))
         expected_return_12 = math.log(result.iloc[20]["close"] / result.iloc[8]["close"])
@@ -54,9 +54,9 @@ class TimeFMFeaturesTest(unittest.TestCase):
     def test_validation_requires_full_week_and_complete_feature_columns(self):
         df = self._sample_week(bars=600)
         df = add_time_context_features(df, symbol="EURUSD")
-        result = add_causal_timefm_features(df, point=100000)
+        result = add_causal_timesfm_features(df, point=100000)
 
-        is_valid, reason = validate_timefm_week(result, bars_per_week=1440, feature_cols=TIMEFM_OBSERVATION_COLUMNS)
+        is_valid, reason = validate_timesfm_week(result, bars_per_week=1440, feature_cols=TIMESFM_OBSERVATION_COLUMNS)
         self.assertFalse(is_valid)
         self.assertIn("expected 1440 bars", reason)
 

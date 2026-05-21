@@ -7,9 +7,9 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from src.timefm_features import TIMEFM_OBSERVATION_COLUMNS
-from src.timefm_split import load_split_manifest, parse_weekly_csv_path
-from src.timefm_targets import summarize_future_targets
+from src.timesfm_features import TIMESFM_OBSERVATION_COLUMNS
+from src.timesfm_split import load_split_manifest, parse_weekly_csv_path
+from src.timesfm_targets import summarize_future_targets
 from src.util.read_config import EnvConfig
 
 
@@ -38,11 +38,11 @@ REQUIRED_BASE_COLUMNS = ("time", "symbol", "open", "high", "low", "close")
 
 def _normalize_feature_cols(feature_cols: Iterable[str] | None) -> list[str]:
     if feature_cols is None:
-        return list(TIMEFM_OBSERVATION_COLUMNS)
+        return list(TIMESFM_OBSERVATION_COLUMNS)
     return [str(column) for column in feature_cols]
 
 
-def load_timefm_weekly_csv(
+def load_timesfm_weekly_csv(
     csv_path: str | Path,
     target_col: str,
     feature_cols: Iterable[str] | None = None,
@@ -77,7 +77,7 @@ def _window_has_missing_values(
     )
 
 
-def build_timefm_samples(
+def build_timesfm_samples(
     frame: pd.DataFrame,
     context_window: int,
     forecast_horizon: int,
@@ -158,7 +158,7 @@ def build_timefm_samples(
     return samples
 
 
-def build_timefm_samples_from_file(
+def build_timesfm_samples_from_file(
     csv_path: str | Path,
     context_window: int,
     forecast_horizon: int,
@@ -166,8 +166,8 @@ def build_timefm_samples_from_file(
     feature_cols: Iterable[str] | None = None,
     dropna: bool = True,
 ) -> list[TimeFMSample]:
-    frame = load_timefm_weekly_csv(csv_path, target_col=target_col, feature_cols=feature_cols)
-    return build_timefm_samples(
+    frame = load_timesfm_weekly_csv(csv_path, target_col=target_col, feature_cols=feature_cols)
+    return build_timesfm_samples(
         frame,
         context_window=context_window,
         forecast_horizon=forecast_horizon,
@@ -178,7 +178,7 @@ def build_timefm_samples_from_file(
     )
 
 
-def build_timefm_dataset_grid(
+def build_timesfm_dataset_grid(
     data_directory: str | Path,
     context_windows: Iterable[int],
     forecast_horizons: Iterable[int],
@@ -209,10 +209,10 @@ def build_timefm_dataset_grid(
 
     feature_cols = _normalize_feature_cols(feature_cols)
     for csv_file in csv_files:
-        frame = load_timefm_weekly_csv(csv_file, target_col=target_col, feature_cols=feature_cols)
+        frame = load_timesfm_weekly_csv(csv_file, target_col=target_col, feature_cols=feature_cols)
         for context_window, forecast_horizon in grid:
             grid[(context_window, forecast_horizon)].extend(
-                build_timefm_samples(
+                build_timesfm_samples(
                     frame,
                     context_window=context_window,
                     forecast_horizon=forecast_horizon,
@@ -226,15 +226,15 @@ def build_timefm_dataset_grid(
     return grid
 
 
-def build_timefm_dataset_from_config(
+def build_timesfm_dataset_from_config(
     data_directory: str | Path,
     env_config_file: str = "./src/configure.json",
     feature_cols: Iterable[str] | None = None,
     dropna: bool = True,
 ) -> dict[tuple[int, int], list[TimeFMSample]]:
     cf = EnvConfig(env_config_file)
-    config_feature_cols = feature_cols or cf.timefm_observation_list()
-    return build_timefm_dataset_grid(
+    config_feature_cols = feature_cols or cf.timesfm_observation_list()
+    return build_timesfm_dataset_grid(
         data_directory=data_directory,
         context_windows=cf.env_parameters("context_windows"),
         forecast_horizons=cf.env_parameters("forecast_horizons"),
@@ -244,7 +244,7 @@ def build_timefm_dataset_from_config(
     )
 
 
-def build_timefm_samples_for_split(
+def build_timesfm_samples_for_split(
     data_directory: str | Path,
     manifest_path: str | Path,
     split_name: str,
@@ -261,7 +261,7 @@ def build_timefm_samples_for_split(
     samples: list[TimeFMSample] = []
     for file_name in split_files:
         samples.extend(
-            build_timefm_samples_from_file(
+            build_timesfm_samples_from_file(
                 data_directory / file_name,
                 context_window=context_window,
                 forecast_horizon=forecast_horizon,
@@ -271,3 +271,12 @@ def build_timefm_samples_for_split(
             )
         )
     return samples
+
+
+# Backward-compatible TimeFM aliases.
+load_timefm_weekly_csv = load_timesfm_weekly_csv
+build_timefm_samples = build_timesfm_samples
+build_timefm_samples_from_file = build_timesfm_samples_from_file
+build_timefm_dataset_grid = build_timesfm_dataset_grid
+build_timefm_dataset_from_config = build_timesfm_dataset_from_config
+build_timefm_samples_for_split = build_timesfm_samples_for_split

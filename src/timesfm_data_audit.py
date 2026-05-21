@@ -7,8 +7,8 @@ from typing import Iterable
 
 import pandas as pd
 
-from src.timefm_dataset import load_timefm_weekly_csv
-from src.timefm_split import load_split_manifest
+from src.timesfm_dataset import load_timesfm_weekly_csv
+from src.timesfm_split import load_split_manifest
 
 
 def _sample_count_for_file(row_count: int, context_window: int, forecast_horizon: int) -> int:
@@ -29,7 +29,7 @@ def _audit_files(
     sample_counts = {f"{context}x{horizon}": 0 for context in context_windows for horizon in forecast_horizons}
 
     for file_name in file_names:
-        frame = load_timefm_weekly_csv(data_directory / file_name, target_col=target_col, feature_cols=feature_cols)
+        frame = load_timesfm_weekly_csv(data_directory / file_name, target_col=target_col, feature_cols=feature_cols)
         frames.append(frame)
         row_count = len(frame)
         row_counts.append(row_count)
@@ -61,7 +61,7 @@ def _audit_files(
     }
 
 
-def audit_timefm_dataset(
+def audit_timesfm_dataset(
     data_directory: str | Path,
     manifest_path: str | Path,
     target_col: str,
@@ -103,7 +103,7 @@ def main() -> None:
 
     data_directory = Path(args.data_directory) if args.data_directory else Path(f"./data/split/{args.symbol}/weekly/train")
     manifest_path = Path(args.manifest_path) if args.manifest_path else Path(f"./data/split/{args.symbol}/weekly/manifest.json")
-    report = audit_timefm_dataset(
+    report = audit_timesfm_dataset(
         data_directory=data_directory,
         manifest_path=manifest_path,
         target_col=args.target_col,
@@ -116,3 +116,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# Backward-compatible TimeFM alias.
+audit_timefm_dataset = audit_timesfm_dataset

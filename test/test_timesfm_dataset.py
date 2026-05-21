@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.timefm_features import TIMEFM_OBSERVATION_COLUMNS
-from src.timefm_dataset import (
+from src.timesfm_features import TIMESFM_OBSERVATION_COLUMNS
+from src.timesfm_dataset import (
     TimeFMSample,
-    build_timefm_dataset_grid,
-    build_timefm_samples,
-    load_timefm_weekly_csv,
+    build_timesfm_dataset_grid,
+    build_timesfm_samples,
+    load_timesfm_weekly_csv,
 )
 
 
@@ -60,30 +60,30 @@ class TimeFMDatasetAdapterTest(unittest.TestCase):
     def test_build_timefm_samples_creates_expected_window_count_and_shapes(self):
         frame = self._frame(bars=8)
 
-        samples = build_timefm_samples(
+        samples = build_timesfm_samples(
             frame,
             context_window=3,
             forecast_horizon=2,
             target_col="log_return_1",
-            feature_cols=TIMEFM_OBSERVATION_COLUMNS,
+            feature_cols=TIMESFM_OBSERVATION_COLUMNS,
         )
 
         self.assertEqual(len(samples), 4)
         first = samples[0]
         self.assertIsInstance(first, TimeFMSample)
         self.assertEqual(first.target_context.shape, (3,))
-        self.assertEqual(first.dynamic_covariates.shape, (3, len(TIMEFM_OBSERVATION_COLUMNS)))
+        self.assertEqual(first.dynamic_covariates.shape, (3, len(TIMESFM_OBSERVATION_COLUMNS)))
         self.assertEqual(first.target_future.shape, (2,))
 
     def test_build_timefm_samples_is_leakage_safe_on_timestamps_and_targets(self):
         frame = self._frame(bars=8)
 
-        samples = build_timefm_samples(
+        samples = build_timesfm_samples(
             frame,
             context_window=3,
             forecast_horizon=2,
             target_col="log_return_1",
-            feature_cols=TIMEFM_OBSERVATION_COLUMNS,
+            feature_cols=TIMESFM_OBSERVATION_COLUMNS,
         )
 
         first = samples[0]
@@ -97,12 +97,12 @@ class TimeFMDatasetAdapterTest(unittest.TestCase):
         frame = self._frame(bars=8)
         frame.loc[2, "returns_12"] = pd.NA
 
-        samples = build_timefm_samples(
+        samples = build_timesfm_samples(
             frame,
             context_window=3,
             forecast_horizon=2,
             target_col="log_return_1",
-            feature_cols=TIMEFM_OBSERVATION_COLUMNS,
+            feature_cols=TIMESFM_OBSERVATION_COLUMNS,
             dropna=True,
         )
 
@@ -121,15 +121,15 @@ class TimeFMDatasetAdapterTest(unittest.TestCase):
             late.to_csv(late_path, index=False)
             early.to_csv(early_path, index=False)
 
-            loaded = load_timefm_weekly_csv(early_path, target_col="log_return_1", feature_cols=TIMEFM_OBSERVATION_COLUMNS)
+            loaded = load_timesfm_weekly_csv(early_path, target_col="log_return_1", feature_cols=TIMESFM_OBSERVATION_COLUMNS)
             self.assertIn("UTC", str(loaded["time"].dtype))
 
-            grid = build_timefm_dataset_grid(
+            grid = build_timesfm_dataset_grid(
                 data_directory=tmpdir,
                 context_windows=[3],
                 forecast_horizons=[2, 3],
                 target_col="log_return_1",
-                feature_cols=TIMEFM_OBSERVATION_COLUMNS,
+                feature_cols=TIMESFM_OBSERVATION_COLUMNS,
             )
 
             self.assertEqual(set(grid.keys()), {(3, 2), (3, 3)})

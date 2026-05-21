@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.timefm_data_audit import audit_timefm_dataset
-from src.timefm_split import build_split_manifest, write_split_manifest
+from src.timesfm_data_audit import audit_timesfm_dataset
+from src.timesfm_split import build_split_manifest, write_split_manifest
 
 
 class TimeFMDataAuditTest(unittest.TestCase):
@@ -39,7 +39,7 @@ class TimeFMDataAuditTest(unittest.TestCase):
             manifest_path = base / "manifest.json"
             write_split_manifest(manifest_path, manifest)
 
-            report = audit_timefm_dataset(
+            report = audit_timesfm_dataset(
                 data_directory=train_dir,
                 manifest_path=manifest_path,
                 target_col="log_return_1",

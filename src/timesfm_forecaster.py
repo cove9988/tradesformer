@@ -21,7 +21,7 @@ from typing import Iterable
 
 import numpy as np
 
-from src.timefm_dataset import TimeFMSample
+from src.timesfm_dataset import TimeFMSample
 
 TIMESFM_25_MODEL_ID = "google/timesfm-2.5-200m-transformers"
 TIMESFM_25_BACKEND = "timesfm-2.5-transformers"
@@ -198,12 +198,22 @@ def _predict_with_transformers_model(
     Calls model(past_values=...) following the official API.
     Returns (mean, lower, upper) as 1-D numpy arrays of length `horizon`.
     """
-    # Try to use torch if available, otherwise keep as numpy for stubbed tests.
-    try:
-        import torch
+    # Avoid importing torch for stub models used in tests; importing torch can
+    # crash in environments without a compatible binary.
+    model_module = getattr(raw_model.__class__, "__module__", "")
+    use_torch_tensor = str(model_module).startswith("transformers")
+
+    if use_torch_tensor:
+        try:
+            import torch
+        except Exception as exc:  # pragma: no cover - defensive runtime guard
+            raise ImportError(
+                "Torch is required for the real transformers backend. "
+                "Use backend_name='fake-timesfm' for tests without torch."
+            ) from exc
         context_tensor = torch.tensor(context, dtype=torch.float32).unsqueeze(0)  # [1, T]
-    except ImportError:
-        # Running under a stub in tests — pass the raw array and let the stub handle it
+    else:
+        # Running under a stub in tests — pass the raw array and let the stub handle it.
         context_tensor = context[np.newaxis, :]  # [1, T]
 
     context_len = context.shape[0]

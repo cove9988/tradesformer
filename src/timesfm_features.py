@@ -6,7 +6,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-TIMEFM_OBSERVATION_COLUMNS = [
+TIMESFM_OBSERVATION_COLUMNS = [
     "close_rel_week_open",
     "high_rel_week_open",
     "low_rel_week_open",
@@ -35,7 +35,7 @@ TIMEFM_OBSERVATION_COLUMNS = [
     "week_progress",
 ]
 
-TIMEFM_HELPER_COLUMNS = [
+TIMESFM_HELPER_COLUMNS = [
     "log_return_1",
     "true_range",
     "atr",
@@ -75,7 +75,7 @@ def add_time_context_features(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     return result
 
 
-def add_causal_timefm_features(
+def add_causal_timesfm_features(
     df: pd.DataFrame,
     point: float,
     returns_windows: Iterable[int] = (12, 48, 96, 288),
@@ -165,7 +165,7 @@ def add_causal_timefm_features(
     return result
 
 
-def validate_timefm_week(
+def validate_timesfm_week(
     week_df: pd.DataFrame,
     bars_per_week: int,
     feature_cols: Iterable[str],
@@ -181,3 +181,10 @@ def validate_timefm_week(
         return False, f"missing feature values in {preview}{suffix}"
 
     return True, "ok"
+
+
+# Backward-compatible TimeFM aliases.
+add_causal_timefm_features = add_causal_timesfm_features
+validate_timefm_week = validate_timesfm_week
+TIMEFM_OBSERVATION_COLUMNS = TIMESFM_OBSERVATION_COLUMNS
+TIMEFM_HELPER_COLUMNS = TIMESFM_HELPER_COLUMNS

@@ -1,6 +1,6 @@
 """Failing tests for the TimesFM 2.5 Transformers inference contract.
 
-These tests describe what src/timefm_forecaster.py should look like AFTER the
+These tests describe what src/timesfm_forecaster.py should look like AFTER the
 v1 JAX/PAX path is retired.  They are written first and expected to FAIL until
 the implementation is updated.
 """
@@ -13,8 +13,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 
-from src.timefm_dataset import build_timefm_samples
-from src.timefm_forecaster import (
+from src.timesfm_dataset import build_timesfm_samples
+from src.timesfm_forecaster import (
     TimeFMForecastResult,
     TimeFMModelHandle,
     forecast_batch,
@@ -40,7 +40,7 @@ def _make_sample(context_window: int = 4, forecast_horizon: int = 2):
         "close_rel_week_open": list(range(bars)),
         "hour_sin": [0.0] * bars,
     })
-    return build_timefm_samples(
+    return build_timesfm_samples(
         frame,
         context_window=context_window,
         forecast_horizon=forecast_horizon,

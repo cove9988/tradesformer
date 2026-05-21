@@ -7,17 +7,17 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from src.timefm_dataset import build_timefm_samples
-from src.timefm_forecaster import (
+from src.timesfm_dataset import build_timesfm_samples
+from src.timesfm_forecaster import (
     TimeFMForecastResult,
     TimeFMModelHandle,
     forecast_batch,
     forecast_sample,
     load_model,
 )
-from src.timefm_loader_spike import build_spike_report
-from src.run_timefm_forecasts import run_forecasts_for_split
-from src.timefm_split import build_split_manifest, write_split_manifest
+from src.timesfm_loader_spike import build_spike_report
+from src.run_timesfm_forecasts import run_forecasts_for_split
+from src.timesfm_split import build_split_manifest, write_split_manifest
 
 
 class FakeBackend:
@@ -48,7 +48,7 @@ class TimeFMForecasterTest(unittest.TestCase):
                 "hour_sin": [0.0] * 8,
             }
         )
-        return build_timefm_samples(
+        return build_timesfm_samples(
             frame,
             context_window=3,
             forecast_horizon=2,
@@ -99,7 +99,7 @@ class TimeFMLoaderSpikeTest(unittest.TestCase):
                 "hour_sin": [0.0] * 8,
             }
         )
-        csv_path = Path(tempfile.gettempdir()) / "timefm_loader_spike_sample.csv"
+        csv_path = Path(tempfile.gettempdir()) / "timesfm_loader_spike_sample.csv"
         frame.to_csv(csv_path, index=False)
 
         report = build_spike_report(

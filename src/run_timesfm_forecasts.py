@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 from typing import Iterable
 
-from src.timefm_dataset import build_timefm_samples_for_split
-from src.timefm_forecaster import TimeFMForecastResult, TimeFMModelHandle, forecast_batch, load_model
+from src.timesfm_dataset import build_timesfm_samples_for_split
+from src.timesfm_forecaster import TimeFMForecastResult, TimeFMModelHandle, forecast_batch, load_model
 
 
 def _result_to_record(result: TimeFMForecastResult) -> dict[str, object]:
@@ -49,7 +49,7 @@ def run_forecasts_for_split(
     written_paths: list[Path] = []
     for context_window in context_windows:
         for forecast_horizon in forecast_horizons:
-            samples = build_timefm_samples_for_split(
+            samples = build_timesfm_samples_for_split(
                 data_directory=data_directory,
                 manifest_path=manifest_path,
                 split_name=split_name,
