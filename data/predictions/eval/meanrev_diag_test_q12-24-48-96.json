@@ -1,0 +1,70 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "split": "test",
+    "qs": [
+      12,
+      24,
+      48,
+      96
+    ],
+    "n_weeks": 21,
+    "n_bars": 30240
+  },
+  "variance_ratio": [
+    {
+      "q": 12,
+      "vr": 1.0449826529709707,
+      "z_robust": 1.053383071873878,
+      "n": 30240,
+      "regime": "random-walk (no significant structure)"
+    },
+    {
+      "q": 24,
+      "vr": 1.036665180014823,
+      "z_robust": 0.6191552731902962,
+      "n": 30240,
+      "regime": "random-walk (no significant structure)"
+    },
+    {
+      "q": 48,
+      "vr": 1.0527826753427325,
+      "z_robust": 0.666565988263058,
+      "n": 30240,
+      "regime": "random-walk (no significant structure)"
+    },
+    {
+      "q": 96,
+      "vr": 1.1342899678859841,
+      "z_robust": 1.3073315810657111,
+      "n": 30240,
+      "regime": "random-walk (no significant structure)"
+    }
+  ],
+  "autocorr": [
+    {
+      "lag": 12,
+      "acf": 0.006986456304454625,
+      "z": 1.2149204451437081,
+      "n_pairs": 29988
+    },
+    {
+      "lag": 24,
+      "acf": -0.007076768615077939,
+      "z": -1.230625441760444,
+      "n_pairs": 29736
+    },
+    {
+      "lag": 48,
+      "acf": 0.009059694057362342,
+      "z": 1.5754492774854154,
+      "n_pairs": 29232
+    },
+    {
+      "lag": 96,
+      "acf": -9.0669641375413e-05,
+      "z": -0.015767135191355947,
+      "n_pairs": 28224
+    }
+  ]
+}

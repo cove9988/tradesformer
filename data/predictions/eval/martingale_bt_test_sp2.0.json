@@ -1,0 +1,90 @@
+{
+  "config": {
+    "split": "test",
+    "n_weeks": 21,
+    "spread_pips": 2.0,
+    "step_pips": 20.0,
+    "target_pips": 20.0,
+    "window": 48
+  },
+  "variants": {
+    "flat_baseline": {
+      "n_cycles": 98,
+      "total_return": -0.04803,
+      "mean_cycle": -0.0004901,
+      "win_rate": 0.6837,
+      "sharpe_naive": -0.884,
+      "skew": -1.246,
+      "max_drawdown": -0.05758,
+      "worst_cycle": -0.00895,
+      "best_cycle": 0.00334,
+      "ruin_events": 17,
+      "ruin_rate": 0.1735
+    },
+    "martingale_naive": {
+      "n_cycles": 159,
+      "total_return": -0.23612,
+      "mean_cycle": -0.001485,
+      "win_rate": 0.8931,
+      "sharpe_naive": -0.366,
+      "skew": -11.601,
+      "max_drawdown": -0.4191,
+      "worst_cycle": -0.35981,
+      "best_cycle": 0.00742,
+      "ruin_events": 1,
+      "ruin_rate": 0.0063
+    },
+    "martingale_capped4": {
+      "n_cycles": 163,
+      "total_return": -0.02543,
+      "mean_cycle": -0.000156,
+      "win_rate": 0.8896,
+      "sharpe_naive": -0.101,
+      "skew": -6.231,
+      "max_drawdown": -0.12666,
+      "worst_cycle": -0.08765,
+      "best_cycle": 0.00742,
+      "ruin_events": 2,
+      "ruin_rate": 0.0123
+    },
+    "martingale_volgated": {
+      "n_cycles": 113,
+      "total_return": -0.09803,
+      "mean_cycle": -0.0008675,
+      "win_rate": 0.8496,
+      "sharpe_naive": -0.515,
+      "skew": -5.403,
+      "max_drawdown": -0.21141,
+      "worst_cycle": -0.07397,
+      "best_cycle": 0.00407,
+      "ruin_events": 3,
+      "ruin_rate": 0.0265
+    },
+    "martingale_volscaled": {
+      "n_cycles": 132,
+      "total_return": 0.05416,
+      "mean_cycle": 0.0004103,
+      "win_rate": 0.8788,
+      "sharpe_naive": 0.412,
+      "skew": -8.949,
+      "max_drawdown": -0.08842,
+      "worst_cycle": -0.07397,
+      "best_cycle": 0.00672,
+      "ruin_events": 1,
+      "ruin_rate": 0.0076
+    },
+    "anti_martingale": {
+      "n_cycles": 244,
+      "total_return": -0.05497,
+      "mean_cycle": -0.0002253,
+      "win_rate": 0.3443,
+      "sharpe_naive": -0.518,
+      "skew": 0.712,
+      "max_drawdown": -0.0696,
+      "worst_cycle": -0.00481,
+      "best_cycle": 0.0083,
+      "ruin_events": 0,
+      "ruin_rate": 0.0
+    }
+  }
+}
