@@ -3,6 +3,7 @@
 data/log/
 data/split/
 data/model/
+data/adapters/
 data/plot/
 .DS_Store
 # Byte-compiled / optimized / DLL files

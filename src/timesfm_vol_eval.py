@@ -66,9 +66,28 @@ def _forward_rv(r: np.ndarray, h: int) -> np.ndarray:
     return fwd
 
 
-def build_vol_windows(data_dir, context_len, horizon, window, stride, max_files=None):
-    """Return dict of aligned arrays for every decision point across weekly files."""
+def _weeks_for_split(manifest_path, split):
+    """Return the set of CSV basenames for a manifest split, or None for 'all'."""
+    if not split or split == "all":
+        return None
+    from src.timesfm_split import load_split_manifest
+    m = load_split_manifest(manifest_path)
+    weeks = m.get("splits", {}).get(split)
+    if weeks is None:
+        raise ValueError(f"split '{split}' not found in manifest {manifest_path}")
+    return set(weeks)
+
+
+def build_vol_windows(data_dir, context_len, horizon, window, stride, max_files=None, weeks=None):
+    """Return dict of aligned arrays for every decision point across weekly files.
+
+    weeks: optional set/list of CSV basenames to include (leakage-free split
+    filtering). When None, every CSV in data_dir is used.
+    """
     files = sorted(glob.glob(str(Path(data_dir) / "*.csv")))
+    if weeks is not None:
+        wantset = set(weeks)
+        files = [f for f in files if Path(f).name in wantset]
     if max_files:
         files = files[:max_files]
     rv_ctx, persistence, ewma, clim, actual_fwd = [], [], [], [], []
@@ -104,13 +123,17 @@ def build_vol_windows(data_dir, context_len, horizon, window, stride, max_files=
     }
 
 
-def _load_timesfm(device="cpu"):
+def _load_timesfm(device="cpu", adapter_path=None):
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
     import torch
     from transformers import TimesFm2_5ModelForPrediction
     torch.set_num_threads(max(1, os.cpu_count() or 4))
     m = TimesFm2_5ModelForPrediction.from_pretrained(MODEL_ID, device_map=device)
+    if adapter_path:
+        from peft import PeftModel
+        m = PeftModel.from_pretrained(m, adapter_path)
+        m = m.merge_and_unload()  # fold LoRA into base weights for clean inference
     m.eval()
     return m
 
@@ -182,13 +205,16 @@ def _score(name, pred, actual):
 
 def run(data_dir=DEFAULT_DATA_DIR, context_len=512, horizons=(48, 96), window=48,
         stride=48, backend="timesfm", max_files=None, batch_size=64, device="cpu",
-        out_dir="data/predictions/eval"):
+        out_dir="data/predictions/eval", split="all", manifest_path=None, adapter_path=None):
+    weeks = _weeks_for_split(manifest_path, split) if split and split != "all" else None
     report = {"config": dict(data_dir=data_dir, context_len=context_len,
               horizons=list(horizons), window=window, stride=stride, backend=backend,
-              max_files=max_files), "results": {}}
-    model = _load_timesfm(device) if backend == "timesfm" else None
+              max_files=max_files, split=split,
+              adapter=os.path.basename(adapter_path) if adapter_path else None),
+              "results": {}}
+    model = _load_timesfm(device, adapter_path) if backend == "timesfm" else None
     for H in horizons:
-        d = build_vol_windows(data_dir, context_len, H, window, stride, max_files)
+        d = build_vol_windows(data_dir, context_len, H, window, stride, max_files, weeks=weeks)
         if len(d["actual"]) == 0:
             report["results"][f"H{H}"] = {"error": "no windows"}; continue
         actual = d["actual"]
@@ -208,7 +234,8 @@ def run(data_dir=DEFAULT_DATA_DIR, context_len=512, horizons=(48, 96), window=48
     if out_dir:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         htag = "h" + "-".join(str(h) for h in horizons)
-        p = Path(out_dir) / f"vol_eval_c{context_len}_w{window}_{htag}_{backend}.json"
+        atag = "_ft" if adapter_path else ""
+        p = Path(out_dir) / f"vol_eval_c{context_len}_w{window}_{htag}_{split}{atag}_{backend}.json"
         p.write_text(json.dumps(report, indent=2)); report["_saved_to"] = str(p)
     return report
 
@@ -250,13 +277,20 @@ def parse_args(argv=None):
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--device", default="cpu")
     p.add_argument("--out", dest="out_dir", default="data/predictions/eval")
+    p.add_argument("--split", default="all", choices=["all", "train", "val", "test"],
+                   help="evaluate only on weeks in this manifest split (leakage-free)")
+    p.add_argument("--manifest-path", dest="manifest_path",
+                   default="data/split/EURUSD/weekly/manifest.json")
+    p.add_argument("--adapter-path", dest="adapter_path", default=None,
+                   help="optional LoRA adapter dir to merge before eval (fine-tuned model)")
     return p.parse_args(argv)
 
 
 def main(argv=None):
     a = parse_args(argv)
     print_summary(run(a.data_dir, a.context_len, tuple(a.horizons), a.window, a.stride,
-                      a.backend, a.max_files, a.batch_size, a.device, a.out_dir))
+                      a.backend, a.max_files, a.batch_size, a.device, a.out_dir,
+                      a.split, a.manifest_path, a.adapter_path))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,110 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      48,
+      96
+    ],
+    "window": 48,
+    "stride": 48,
+    "backend": "timesfm",
+    "max_files": null,
+    "split": "test",
+    "adapter": "eurusd_vol_h96"
+  },
+  "results": {
+    "H48": {
+      "n_windows": 378,
+      "actual_vol_mean": 0.0001837,
+      "scores": [
+        {
+          "name": "persistence",
+          "spearman_ic": 0.3417,
+          "pearson_r": 0.2973,
+          "rmse": 0.00013682552650217864,
+          "mae": 9.34693741844119e-05,
+          "qlike_raw": 1.156,
+          "cal_scale": 0.98,
+          "qlike_cal": 1.1959
+        },
+        {
+          "name": "ewma",
+          "spearman_ic": 0.4027,
+          "pearson_r": 0.3113,
+          "rmse": 0.00013319009212833962,
+          "mae": 8.931369163171652e-05,
+          "qlike_raw": 1.167,
+          "cal_scale": 0.99,
+          "qlike_cal": 1.1869
+        },
+        {
+          "name": "climatology",
+          "spearman_ic": 0.1145,
+          "pearson_r": 0.1627,
+          "rmse": 0.00011734632670031234,
+          "mae": 8.515632621122753e-05,
+          "qlike_raw": 0.792,
+          "cal_scale": 0.844,
+          "qlike_cal": 1.0656
+        },
+        {
+          "name": "timesfm",
+          "spearman_ic": 0.6533,
+          "pearson_r": 0.4581,
+          "rmse": 0.00010987181726705583,
+          "mae": 6.7553288957448e-05,
+          "qlike_raw": 0.612,
+          "cal_scale": 0.956,
+          "qlike_cal": 0.6653
+        }
+      ]
+    },
+    "H96": {
+      "n_windows": 357,
+      "actual_vol_mean": 0.0001968,
+      "scores": [
+        {
+          "name": "persistence",
+          "spearman_ic": 0.1444,
+          "pearson_r": 0.1029,
+          "rmse": 0.000147638834955191,
+          "mae": 0.00010718431196575257,
+          "qlike_raw": 1.499,
+          "cal_scale": 1.117,
+          "qlike_cal": 1.2558
+        },
+        {
+          "name": "ewma",
+          "spearman_ic": 0.2149,
+          "pearson_r": 0.1275,
+          "rmse": 0.00014258583853015666,
+          "mae": 0.00010260056024177653,
+          "qlike_raw": 1.309,
+          "cal_scale": 1.191,
+          "qlike_cal": 1.0161
+        },
+        {
+          "name": "climatology",
+          "spearman_ic": 0.1705,
+          "pearson_r": 0.2102,
+          "rmse": 0.00010294432181072336,
+          "mae": 7.443356172548393e-05,
+          "qlike_raw": 0.608,
+          "cal_scale": 0.936,
+          "qlike_cal": 0.6943
+        },
+        {
+          "name": "timesfm",
+          "spearman_ic": 0.615,
+          "pearson_r": 0.4494,
+          "rmse": 9.59295502953756e-05,
+          "mae": 6.39277232445594e-05,
+          "qlike_raw": 0.467,
+          "cal_scale": 0.994,
+          "qlike_cal": 0.4725
+        }
+      ]
+    }
+  }
+}
