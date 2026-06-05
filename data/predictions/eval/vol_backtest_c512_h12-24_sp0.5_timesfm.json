@@ -1,0 +1,406 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      12,
+      24
+    ],
+    "window": 48,
+    "stride": null,
+    "spread_pips": 0.5,
+    "backend": "timesfm",
+    "max_files": null,
+    "max_leverage": 3.0
+  },
+  "results": {
+    "H12": {
+      "n_windows": 10074,
+      "actual_cumret_std": 0.001023,
+      "actual_vol_mean": 0.0002542,
+      "stride_used": 12,
+      "entries": {
+        "momentum": [
+          {
+            "entry": "momentum",
+            "sizing": "flat",
+            "n_trades": 10074,
+            "participation_rate": 0.9726,
+            "avg_gross_leverage": 0.9726,
+            "mean_trade": -6.6e-05,
+            "total_logret": -0.66488,
+            "sharpe_ann": -5.156,
+            "hit_rate": 0.4224,
+            "max_drawdown": -0.66986
+          },
+          {
+            "entry": "momentum",
+            "sizing": "persistence",
+            "n_trades": 10074,
+            "participation_rate": 0.9726,
+            "avg_gross_leverage": 0.9501,
+            "mean_trade": -6.476e-05,
+            "total_logret": -0.65243,
+            "sharpe_ann": -6.84,
+            "hit_rate": 0.4224,
+            "max_drawdown": -0.65484
+          },
+          {
+            "entry": "momentum",
+            "sizing": "ewma",
+            "n_trades": 10074,
+            "participation_rate": 0.9726,
+            "avg_gross_leverage": 0.9448,
+            "mean_trade": -6.461e-05,
+            "total_logret": -0.65086,
+            "sharpe_ann": -7.15,
+            "hit_rate": 0.4224,
+            "max_drawdown": -0.65369
+          },
+          {
+            "entry": "momentum",
+            "sizing": "climatology",
+            "n_trades": 10074,
+            "participation_rate": 0.9726,
+            "avg_gross_leverage": 0.9725,
+            "mean_trade": -6.461e-05,
+            "total_logret": -0.65093,
+            "sharpe_ann": -5.596,
+            "hit_rate": 0.4224,
+            "max_drawdown": -0.65488
+          },
+          {
+            "entry": "momentum",
+            "sizing": "timesfm",
+            "n_trades": 10074,
+            "participation_rate": 0.9726,
+            "avg_gross_leverage": 0.9487,
+            "mean_trade": -6.372e-05,
+            "total_logret": -0.64192,
+            "sharpe_ann": -6.887,
+            "hit_rate": 0.4224,
+            "max_drawdown": -0.6444
+          }
+        ],
+        "sma_trend": [
+          {
+            "entry": "sma_trend",
+            "sizing": "flat",
+            "n_trades": 10074,
+            "participation_rate": 0.9997,
+            "avg_gross_leverage": 0.9997,
+            "mean_trade": -6.26e-05,
+            "total_logret": -0.63061,
+            "sharpe_ann": -4.84,
+            "hit_rate": 0.436,
+            "max_drawdown": -0.6468
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "persistence",
+            "n_trades": 10074,
+            "participation_rate": 0.9997,
+            "avg_gross_leverage": 0.9996,
+            "mean_trade": -6.238e-05,
+            "total_logret": -0.62844,
+            "sharpe_ann": -6.189,
+            "hit_rate": 0.436,
+            "max_drawdown": -0.63717
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "ewma",
+            "n_trades": 10074,
+            "participation_rate": 0.9997,
+            "avg_gross_leverage": 0.9997,
+            "mean_trade": -6.168e-05,
+            "total_logret": -0.62138,
+            "sharpe_ann": -6.296,
+            "hit_rate": 0.436,
+            "max_drawdown": -0.62896
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "climatology",
+            "n_trades": 10074,
+            "participation_rate": 0.9997,
+            "avg_gross_leverage": 0.9997,
+            "mean_trade": -6.235e-05,
+            "total_logret": -0.62812,
+            "sharpe_ann": -5.344,
+            "hit_rate": 0.436,
+            "max_drawdown": -0.63865
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "timesfm",
+            "n_trades": 10074,
+            "participation_rate": 0.9997,
+            "avg_gross_leverage": 0.9997,
+            "mean_trade": -6.107e-05,
+            "total_logret": -0.61518,
+            "sharpe_ann": -6.164,
+            "hit_rate": 0.436,
+            "max_drawdown": -0.6237
+          }
+        ],
+        "macd": [
+          {
+            "entry": "macd",
+            "sizing": "flat",
+            "n_trades": 10074,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -5.487e-05,
+            "total_logret": -0.55275,
+            "sharpe_ann": -4.238,
+            "hit_rate": 0.4407,
+            "max_drawdown": -0.56593
+          },
+          {
+            "entry": "macd",
+            "sizing": "persistence",
+            "n_trades": 10074,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -5.838e-05,
+            "total_logret": -0.58809,
+            "sharpe_ann": -5.786,
+            "hit_rate": 0.4407,
+            "max_drawdown": -0.6061
+          },
+          {
+            "entry": "macd",
+            "sizing": "ewma",
+            "n_trades": 10074,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -5.861e-05,
+            "total_logret": -0.59046,
+            "sharpe_ann": -5.976,
+            "hit_rate": 0.4407,
+            "max_drawdown": -0.60697
+          },
+          {
+            "entry": "macd",
+            "sizing": "climatology",
+            "n_trades": 10074,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -5.96e-05,
+            "total_logret": -0.60042,
+            "sharpe_ann": -5.103,
+            "hit_rate": 0.4407,
+            "max_drawdown": -0.6106
+          },
+          {
+            "entry": "macd",
+            "sizing": "timesfm",
+            "n_trades": 10074,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -5.745e-05,
+            "total_logret": -0.57878,
+            "sharpe_ann": -5.793,
+            "hit_rate": 0.4407,
+            "max_drawdown": -0.59628
+          }
+        ]
+      }
+    },
+    "H24": {
+      "n_windows": 4968,
+      "actual_cumret_std": 0.001441,
+      "actual_vol_mean": 0.0002571,
+      "stride_used": 24,
+      "entries": {
+        "momentum": [
+          {
+            "entry": "momentum",
+            "sizing": "flat",
+            "n_trades": 4968,
+            "participation_rate": 0.9958,
+            "avg_gross_leverage": 0.9958,
+            "mean_trade": -4.04e-05,
+            "total_logret": -0.20069,
+            "sharpe_ann": -1.567,
+            "hit_rate": 0.4668,
+            "max_drawdown": -0.24398
+          },
+          {
+            "entry": "momentum",
+            "sizing": "persistence",
+            "n_trades": 4968,
+            "participation_rate": 0.9958,
+            "avg_gross_leverage": 0.9921,
+            "mean_trade": -5.749e-05,
+            "total_logret": -0.28562,
+            "sharpe_ann": -2.835,
+            "hit_rate": 0.4668,
+            "max_drawdown": -0.3127
+          },
+          {
+            "entry": "momentum",
+            "sizing": "ewma",
+            "n_trades": 4968,
+            "participation_rate": 0.9958,
+            "avg_gross_leverage": 0.9917,
+            "mean_trade": -5.794e-05,
+            "total_logret": -0.28786,
+            "sharpe_ann": -2.916,
+            "hit_rate": 0.4668,
+            "max_drawdown": -0.31186
+          },
+          {
+            "entry": "momentum",
+            "sizing": "climatology",
+            "n_trades": 4968,
+            "participation_rate": 0.9958,
+            "avg_gross_leverage": 0.9946,
+            "mean_trade": -5.183e-05,
+            "total_logret": -0.25749,
+            "sharpe_ann": -2.239,
+            "hit_rate": 0.4668,
+            "max_drawdown": -0.28836
+          },
+          {
+            "entry": "momentum",
+            "sizing": "timesfm",
+            "n_trades": 4968,
+            "participation_rate": 0.9958,
+            "avg_gross_leverage": 0.992,
+            "mean_trade": -5.622e-05,
+            "total_logret": -0.27932,
+            "sharpe_ann": -2.848,
+            "hit_rate": 0.4668,
+            "max_drawdown": -0.30944
+          }
+        ],
+        "sma_trend": [
+          {
+            "entry": "sma_trend",
+            "sizing": "flat",
+            "n_trades": 4968,
+            "participation_rate": 0.9996,
+            "avg_gross_leverage": 0.9996,
+            "mean_trade": -7.136e-05,
+            "total_logret": -0.35449,
+            "sharpe_ann": -2.77,
+            "hit_rate": 0.4499,
+            "max_drawdown": -0.37199
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "persistence",
+            "n_trades": 4968,
+            "participation_rate": 0.9996,
+            "avg_gross_leverage": 0.9993,
+            "mean_trade": -7.415e-05,
+            "total_logret": -0.36836,
+            "sharpe_ann": -3.667,
+            "hit_rate": 0.4499,
+            "max_drawdown": -0.38194
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "ewma",
+            "n_trades": 4968,
+            "participation_rate": 0.9996,
+            "avg_gross_leverage": 0.9994,
+            "mean_trade": -7.446e-05,
+            "total_logret": -0.36991,
+            "sharpe_ann": -3.764,
+            "hit_rate": 0.4499,
+            "max_drawdown": -0.38364
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "climatology",
+            "n_trades": 4968,
+            "participation_rate": 0.9996,
+            "avg_gross_leverage": 0.9995,
+            "mean_trade": -7.146e-05,
+            "total_logret": -0.35503,
+            "sharpe_ann": -3.097,
+            "hit_rate": 0.4499,
+            "max_drawdown": -0.36834
+          },
+          {
+            "entry": "sma_trend",
+            "sizing": "timesfm",
+            "n_trades": 4968,
+            "participation_rate": 0.9996,
+            "avg_gross_leverage": 0.9994,
+            "mean_trade": -7.285e-05,
+            "total_logret": -0.3619,
+            "sharpe_ann": -3.701,
+            "hit_rate": 0.4499,
+            "max_drawdown": -0.37528
+          }
+        ],
+        "macd": [
+          {
+            "entry": "macd",
+            "sizing": "flat",
+            "n_trades": 4968,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -4.963e-05,
+            "total_logret": -0.24656,
+            "sharpe_ann": -1.924,
+            "hit_rate": 0.463,
+            "max_drawdown": -0.2869
+          },
+          {
+            "entry": "macd",
+            "sizing": "persistence",
+            "n_trades": 4968,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -6.061e-05,
+            "total_logret": -0.30113,
+            "sharpe_ann": -2.988,
+            "hit_rate": 0.463,
+            "max_drawdown": -0.33765
+          },
+          {
+            "entry": "macd",
+            "sizing": "ewma",
+            "n_trades": 4968,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -6.219e-05,
+            "total_logret": -0.30896,
+            "sharpe_ann": -3.129,
+            "hit_rate": 0.463,
+            "max_drawdown": -0.34225
+          },
+          {
+            "entry": "macd",
+            "sizing": "climatology",
+            "n_trades": 4968,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -5.395e-05,
+            "total_logret": -0.26805,
+            "sharpe_ann": -2.331,
+            "hit_rate": 0.463,
+            "max_drawdown": -0.29456
+          },
+          {
+            "entry": "macd",
+            "sizing": "timesfm",
+            "n_trades": 4968,
+            "participation_rate": 1.0,
+            "avg_gross_leverage": 1.0,
+            "mean_trade": -6.046e-05,
+            "total_logret": -0.30035,
+            "sharpe_ann": -3.061,
+            "hit_rate": 0.463,
+            "max_drawdown": -0.33496
+          }
+        ]
+      }
+    }
+  }
+}

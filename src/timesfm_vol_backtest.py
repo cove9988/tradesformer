@@ -221,7 +221,8 @@ def run_backtest(data_dir=DEFAULT_DATA_DIR, context_len=512, horizons=(48, 96), 
 
     if out_dir:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
-        p = Path(out_dir) / f"vol_backtest_c{context_len}_sp{spread_pips}_{backend}.json"
+        htag = "h" + "-".join(str(h) for h in horizons)
+        p = Path(out_dir) / f"vol_backtest_c{context_len}_{htag}_sp{spread_pips}_{backend}.json"
         p.write_text(json.dumps(report, indent=2))
         report["_saved_to"] = str(p)
     return report

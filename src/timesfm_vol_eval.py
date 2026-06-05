@@ -207,7 +207,8 @@ def run(data_dir=DEFAULT_DATA_DIR, context_len=512, horizons=(48, 96), window=48
         }
     if out_dir:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
-        p = Path(out_dir) / f"vol_eval_c{context_len}_w{window}_{backend}.json"
+        htag = "h" + "-".join(str(h) for h in horizons)
+        p = Path(out_dir) / f"vol_eval_c{context_len}_w{window}_{htag}_{backend}.json"
         p.write_text(json.dumps(report, indent=2)); report["_saved_to"] = str(p)
     return report
 
