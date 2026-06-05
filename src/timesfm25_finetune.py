@@ -93,6 +93,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--backend", default="timesfm-2.5-transformers",
                    choices=["timesfm-2.5-transformers", "fake"],
                    help="'fake' runs a dry-run loop without loading the real model")
+    p.add_argument("--dtype", default="auto", choices=["auto", "float32", "bfloat16"],
+                   help="auto = float32 on cpu/mps (stable), bfloat16 on cuda")
     return p.parse_args(argv)
 
 
@@ -183,11 +185,12 @@ def run_training(
         # Torch not installed — running under test stubs.
         # Use a minimal list-based "loader" so run_training stays testable.
         class DataLoader:  # type: ignore
-            def __init__(self, dataset, batch_size=32, shuffle=False, drop_last=False):
+            def __init__(self, dataset, batch_size=32, shuffle=False, drop_last=False, collate_fn=None):
                 self._ds = dataset
                 self._bs = batch_size
                 self._shuffle = shuffle
                 self._drop_last = drop_last
+                self._collate_fn = collate_fn
 
             def __iter__(self):
                 indices = list(range(len(self._ds)))
@@ -208,8 +211,8 @@ def run_training(
             return batch
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                              shuffle=True, drop_last=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size)
+                              shuffle=True, drop_last=True, collate_fn=_collate)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, collate_fn=_collate)
 
     best_val_loss = float("inf")
     os.makedirs(output_dir, exist_ok=True)
@@ -317,11 +320,19 @@ def main(argv: list[str] | None = None) -> None:
     device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     logger.info("Device: %s", device)
 
+    # Resolve dtype: bfloat16 is well-supported on CUDA but flaky on MPS;
+    # default to float32 on cpu/mps for numerical stability (200M fits easily).
+    if args.dtype == "auto":
+        torch_dtype = torch.bfloat16 if device == "cuda" else torch.float32
+    else:
+        torch_dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float32
+    logger.info("Dtype: %s", torch_dtype)
+
     # Load model
     logger.info("Loading model: %s", args.model_id)
     model = TimesFm2_5ModelForPrediction.from_pretrained(
         args.model_id,
-        torch_dtype=torch.bfloat16,
+        torch_dtype=torch_dtype,
         device_map=device,
     )
     context_len = min(context_len, model.config.context_length)
