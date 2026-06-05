@@ -90,6 +90,50 @@
             "max_current_holding": 1,
             "limit_order": false,
             "limit_order_expiration": 5
+        },
+        "USDJPY": {
+            "point": 100000,
+            "max_spread": 50,
+            "transaction_fee": -5,
+            "over_night_penalty": -50,
+            "stop_loss_max": -400,
+            "profit_taken_max": 800,
+            "max_current_holding": 1,
+            "limit_order": false,
+            "limit_order_expiration": 5
+        },
+        "USDCHF": {
+            "point": 100000,
+            "max_spread": 50,
+            "transaction_fee": -5,
+            "over_night_penalty": -50,
+            "stop_loss_max": -400,
+            "profit_taken_max": 800,
+            "max_current_holding": 1,
+            "limit_order": false,
+            "limit_order_expiration": 5
+        },
+        "USDCAD": {
+            "point": 100000,
+            "max_spread": 50,
+            "transaction_fee": -5,
+            "over_night_penalty": -50,
+            "stop_loss_max": -400,
+            "profit_taken_max": 800,
+            "max_current_holding": 1,
+            "limit_order": false,
+            "limit_order_expiration": 5
+        },
+        "EURGBP": {
+            "point": 100000,
+            "max_spread": 50,
+            "transaction_fee": -5,
+            "over_night_penalty": -50,
+            "stop_loss_max": -400,
+            "profit_taken_max": 800,
+            "max_current_holding": 1,
+            "limit_order": false,
+            "limit_order_expiration": 5
         }
     },
     "trading_hour": {
