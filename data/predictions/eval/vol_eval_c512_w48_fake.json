@@ -1,0 +1,45 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      48
+    ],
+    "window": 48,
+    "stride": 48,
+    "backend": "fake",
+    "max_files": 20
+  },
+  "results": {
+    "H48": {
+      "n_windows": 360,
+      "actual_vol_mean": 0.0003297,
+      "scores": [
+        {
+          "name": "persistence",
+          "spearman_ic": 0.3874,
+          "pearson_r": 0.3709,
+          "rmse": 0.000189,
+          "mae": 0.0001392,
+          "qlike": 0.7109
+        },
+        {
+          "name": "ewma",
+          "spearman_ic": 0.4829,
+          "pearson_r": 0.411,
+          "rmse": 0.0001802,
+          "mae": 0.0001324,
+          "qlike": 0.7143
+        },
+        {
+          "name": "climatology",
+          "spearman_ic": 0.1876,
+          "pearson_r": 0.1689,
+          "rmse": 0.0001717,
+          "mae": 0.0001347,
+          "qlike": 0.5208
+        }
+      ]
+    }
+  }
+}
