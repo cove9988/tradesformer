@@ -1,0 +1,68 @@
+{
+  "config": {
+    "split": "test",
+    "n_weeks": 21,
+    "n_contexts": 2059,
+    "backend": "timesfm",
+    "adapter_path": "data/adapters/eurusd_vol_h96",
+    "context_len": 512,
+    "horizon": 96,
+    "window": 48,
+    "donchian_n": 96,
+    "spread_pips": 0.5
+  },
+  "results": {
+    "none": {
+      "n_cycles": 467,
+      "total_R": -25.112,
+      "expectancy_R": -0.0538,
+      "win_rate": 0.1927,
+      "payoff_ratio": 4.025,
+      "skew": 3.861,
+      "sharpe_naive": -0.082,
+      "max_drawdown_R": -125.348,
+      "best_R": 41.019,
+      "worst_R": -7.158,
+      "avg_adds": 1.274
+    },
+    "naive_expansion": {
+      "n_cycles": 346,
+      "total_R": 59.068,
+      "expectancy_R": 0.1707,
+      "win_rate": 0.211,
+      "payoff_ratio": 4.203,
+      "skew": 3.62,
+      "sharpe_naive": 0.239,
+      "max_drawdown_R": -89.135,
+      "best_R": 41.019,
+      "worst_R": -7.158,
+      "avg_adds": 1.344
+    },
+    "tsfm_finetuned_expansion": {
+      "n_cycles": 208,
+      "total_R": -2.708,
+      "expectancy_R": -0.013,
+      "win_rate": 0.2067,
+      "payoff_ratio": 3.799,
+      "skew": 3.062,
+      "sharpe_naive": -0.021,
+      "max_drawdown_R": -65.436,
+      "best_R": 24.045,
+      "worst_R": -3.669,
+      "avg_adds": 1.279
+    },
+    "tsfm_finetuned_highvol": {
+      "n_cycles": 187,
+      "total_R": 28.786,
+      "expectancy_R": 0.1539,
+      "win_rate": 0.2246,
+      "payoff_ratio": 3.86,
+      "skew": 2.931,
+      "sharpe_naive": 0.243,
+      "max_drawdown_R": -66.909,
+      "best_R": 24.045,
+      "worst_R": -3.669,
+      "avg_adds": 1.369
+    }
+  }
+}

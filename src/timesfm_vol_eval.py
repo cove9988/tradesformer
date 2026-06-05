@@ -141,6 +141,10 @@ def _load_timesfm(device="cpu", adapter_path=None):
 def _timesfm_vol_pred(model, rv_ctx, horizon, batch_size=64):
     """Forecast the trailing-vol series H steps; predicted fwd vol = RMS of forecast path."""
     import torch
+    try:
+        device = next(model.parameters()).device   # place inputs on the model's device
+    except StopIteration:
+        device = torch.device("cpu")
     C = rv_ctx.shape[1]
     out = np.empty(len(rv_ctx))
     with torch.no_grad():
@@ -150,7 +154,7 @@ def _timesfm_vol_pred(model, rv_ctx, horizon, batch_size=64):
             cur = chunk
             blocks = []
             while filled < horizon:
-                x = torch.tensor(cur, dtype=torch.float32)
+                x = torch.tensor(cur, dtype=torch.float32, device=device)
                 o = model(past_values=x, forecast_context_len=cur.shape[1])
                 blk = o.mean_predictions.float().cpu().numpy()
                 take = min(blk.shape[1], horizon - filled)

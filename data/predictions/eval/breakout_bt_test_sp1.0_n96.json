@@ -1,0 +1,68 @@
+{
+  "config": {
+    "split": "test",
+    "n_weeks": 21,
+    "spread_pips": 1.0,
+    "donchian_n": 96,
+    "k_stop": 2.0,
+    "k_trail": 3.0,
+    "k_add": 1.0,
+    "max_adds": 3,
+    "vol_col": "realized_vol_96",
+    "gate_pct": 50.0
+  },
+  "gates": {
+    "none": {
+      "n_cycles": 467,
+      "total_R": -226.541,
+      "expectancy_R": -0.4851,
+      "win_rate": 0.1713,
+      "payoff_ratio": 3.439,
+      "skew": 3.876,
+      "sharpe_naive": -0.752,
+      "max_drawdown_R": -264.785,
+      "best_R": 40.062,
+      "worst_R": -7.338,
+      "avg_adds": 1.274
+    },
+    "highvol": {
+      "n_cycles": 325,
+      "total_R": -141.173,
+      "expectancy_R": -0.4344,
+      "win_rate": 0.1877,
+      "payoff_ratio": 3.207,
+      "skew": 3.973,
+      "sharpe_naive": -0.667,
+      "max_drawdown_R": -173.584,
+      "best_R": 40.062,
+      "worst_R": -7.338,
+      "avg_adds": 1.308
+    },
+    "expansion": {
+      "n_cycles": 313,
+      "total_R": -99.035,
+      "expectancy_R": -0.3164,
+      "win_rate": 0.1917,
+      "payoff_ratio": 3.433,
+      "skew": 3.712,
+      "sharpe_naive": -0.448,
+      "max_drawdown_R": -154.623,
+      "best_R": 40.062,
+      "worst_R": -7.338,
+      "avg_adds": 1.313
+    },
+    "lowvol": {
+      "n_cycles": 204,
+      "total_R": -154.437,
+      "expectancy_R": -0.757,
+      "win_rate": 0.1471,
+      "payoff_ratio": 3.291,
+      "skew": 3.516,
+      "sharpe_naive": -1.331,
+      "max_drawdown_R": -168.54,
+      "best_R": 23.406,
+      "worst_R": -5.697,
+      "avg_adds": 1.25
+    }
+  }
+}
