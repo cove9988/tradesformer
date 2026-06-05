@@ -1,0 +1,69 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      48
+    ],
+    "stride": 96,
+    "backend": "fake",
+    "max_files": 20
+  },
+  "results": {
+    "H48": {
+      "n_windows": 200,
+      "actual_cumret_std": 0.002342,
+      "up_rate": 0.44,
+      "scores": [
+        {
+          "name": "momentum_ref",
+          "n": 200,
+          "dir_acc": 0.465,
+          "p_val": 0.358,
+          "ic": -0.029
+        },
+        {
+          "name": "tf_close",
+          "n": 0
+        },
+        {
+          "name": "tf_log_return_1",
+          "n": 194,
+          "dir_acc": 0.4845,
+          "p_val": 0.7196,
+          "ic": 0.034
+        },
+        {
+          "name": "tf_ema_12",
+          "n": 0
+        },
+        {
+          "name": "tf_ema_48",
+          "n": 0
+        },
+        {
+          "name": "tf_ema_96",
+          "n": 0
+        },
+        {
+          "name": "tf_sma_288",
+          "n": 0
+        },
+        {
+          "name": "tf_close_vs_sma_288",
+          "n": 200,
+          "dir_acc": 0.485,
+          "p_val": 0.7237,
+          "ic": -0.0595
+        },
+        {
+          "name": "tf_macd_12_48",
+          "n": 200,
+          "dir_acc": 0.475,
+          "p_val": 0.5245,
+          "ic": -0.0241
+        }
+      ]
+    }
+  }
+}

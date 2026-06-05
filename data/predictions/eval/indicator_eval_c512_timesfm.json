@@ -1,0 +1,155 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      48,
+      96
+    ],
+    "stride": 48,
+    "backend": "timesfm",
+    "max_files": null
+  },
+  "results": {
+    "H48": {
+      "n_windows": 2622,
+      "actual_cumret_std": 0.002025,
+      "up_rate": 0.5053,
+      "scores": [
+        {
+          "name": "momentum_ref",
+          "n": 2615,
+          "dir_acc": 0.4941,
+          "p_val": 0.5574,
+          "ic": 0.0175
+        },
+        {
+          "name": "tf_close",
+          "n": 2622,
+          "dir_acc": 0.5084,
+          "p_val": 0.401,
+          "ic": 0.0171
+        },
+        {
+          "name": "tf_log_return_1",
+          "n": 2622,
+          "dir_acc": 0.4867,
+          "p_val": 0.1778,
+          "ic": -0.0048
+        },
+        {
+          "name": "tf_ema_12",
+          "n": 2622,
+          "dir_acc": 0.5092,
+          "p_val": 0.3587,
+          "ic": 0.0225
+        },
+        {
+          "name": "tf_ema_48",
+          "n": 2622,
+          "dir_acc": 0.4954,
+          "p_val": 0.6533,
+          "ic": 0.0306
+        },
+        {
+          "name": "tf_ema_96",
+          "n": 2622,
+          "dir_acc": 0.4935,
+          "p_val": 0.5193,
+          "ic": 0.0241
+        },
+        {
+          "name": "tf_sma_288",
+          "n": 2622,
+          "dir_acc": 0.4786,
+          "p_val": 0.0302,
+          "ic": -0.0211
+        },
+        {
+          "name": "tf_close_vs_sma_288",
+          "n": 2622,
+          "dir_acc": 0.4836,
+          "p_val": 0.0969,
+          "ic": -0.0249
+        },
+        {
+          "name": "tf_macd_12_48",
+          "n": 2622,
+          "dir_acc": 0.4931,
+          "p_val": 0.4943,
+          "ic": -0.0126
+        }
+      ]
+    },
+    "H96": {
+      "n_windows": 2484,
+      "actual_cumret_std": 0.002884,
+      "up_rate": 0.5149,
+      "scores": [
+        {
+          "name": "momentum_ref",
+          "n": 2481,
+          "dir_acc": 0.5067,
+          "p_val": 0.5206,
+          "ic": 0.0011
+        },
+        {
+          "name": "tf_close",
+          "n": 2484,
+          "dir_acc": 0.5197,
+          "p_val": 0.0516,
+          "ic": 0.0144
+        },
+        {
+          "name": "tf_log_return_1",
+          "n": 2484,
+          "dir_acc": 0.4879,
+          "p_val": 0.2365,
+          "ic": -0.0259
+        },
+        {
+          "name": "tf_ema_12",
+          "n": 2484,
+          "dir_acc": 0.5085,
+          "p_val": 0.4107,
+          "ic": 0.0388
+        },
+        {
+          "name": "tf_ema_48",
+          "n": 2484,
+          "dir_acc": 0.5032,
+          "p_val": 0.7634,
+          "ic": 0.0243
+        },
+        {
+          "name": "tf_ema_96",
+          "n": 2484,
+          "dir_acc": 0.5028,
+          "p_val": 0.7942,
+          "ic": 0.0305
+        },
+        {
+          "name": "tf_sma_288",
+          "n": 2484,
+          "dir_acc": 0.4839,
+          "p_val": 0.1129,
+          "ic": -0.0317
+        },
+        {
+          "name": "tf_close_vs_sma_288",
+          "n": 2484,
+          "dir_acc": 0.4843,
+          "p_val": 0.1224,
+          "ic": -0.0358
+        },
+        {
+          "name": "tf_macd_12_48",
+          "n": 2484,
+          "dir_acc": 0.4859,
+          "p_val": 0.1662,
+          "ic": -0.0439
+        }
+      ]
+    }
+  }
+}
