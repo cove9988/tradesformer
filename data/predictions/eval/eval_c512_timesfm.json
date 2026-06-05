@@ -1,0 +1,377 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      12,
+      48
+    ],
+    "stride": 48,
+    "backend": "timesfm",
+    "max_files": null,
+    "model_id": "google/timesfm-2.5-200m-transformers",
+    "model_load_s": 2.8
+  },
+  "results": {
+    "H12": {
+      "n_windows": 2760,
+      "actual_cumret_std": 0.001037,
+      "timings": {
+        "timesfm_price_s": 22.4,
+        "timesfm_return_s": 20.6
+      },
+      "strategies": [
+        {
+          "name": "naive_flat",
+          "n_windows": 2760,
+          "n_traded": 0,
+          "dir_accuracy": null,
+          "binom_p_value": 1.0,
+          "information_coef_spearman": null,
+          "pearson_corr": null,
+          "mae": 0.0006278,
+          "rmse": 0.001037,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            },
+            "0.5pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            },
+            "1.0pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            }
+          }
+        },
+        {
+          "name": "momentum",
+          "n_windows": 2760,
+          "n_traded": 2650,
+          "dir_accuracy": 0.4789,
+          "binom_p_value": 0.0311,
+          "information_coef_spearman": -0.0016,
+          "pearson_corr": 0.0061,
+          "mae": 0.0008951,
+          "rmse": 0.00142,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": 0.548,
+              "mean_trade": 7.193e-06,
+              "total_logret": 0.01985,
+              "hit_rate": 0.4598,
+              "max_drawdown": -0.05007
+            },
+            "0.5pip": {
+              "sharpe_ann": -3.109,
+              "mean_trade": -4.081e-05,
+              "total_logret": -0.11265,
+              "hit_rate": 0.4239,
+              "max_drawdown": -0.12323
+            },
+            "1.0pip": {
+              "sharpe_ann": -6.765,
+              "mean_trade": -8.882e-05,
+              "total_logret": -0.24515,
+              "hit_rate": 0.3975,
+              "max_drawdown": -0.24492
+            }
+          }
+        },
+        {
+          "name": "reversion",
+          "n_windows": 2760,
+          "n_traded": 2650,
+          "dir_accuracy": 0.5008,
+          "binom_p_value": 0.9535,
+          "information_coef_spearman": 0.0016,
+          "pearson_corr": -0.0061,
+          "mae": 0.0008991,
+          "rmse": 0.001429,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": -0.548,
+              "mean_trade": -7.193e-06,
+              "total_logret": -0.01985,
+              "hit_rate": 0.4808,
+              "max_drawdown": -0.08304
+            },
+            "0.5pip": {
+              "sharpe_ann": -4.205,
+              "mean_trade": -5.52e-05,
+              "total_logret": -0.15235,
+              "hit_rate": 0.4489,
+              "max_drawdown": -0.16834
+            },
+            "1.0pip": {
+              "sharpe_ann": -7.86,
+              "mean_trade": -0.0001032,
+              "total_logret": -0.28485,
+              "hit_rate": 0.4127,
+              "max_drawdown": -0.29632
+            }
+          }
+        },
+        {
+          "name": "timesfm_price",
+          "n_windows": 2760,
+          "n_traded": 2760,
+          "dir_accuracy": 0.458,
+          "binom_p_value": 0.0,
+          "information_coef_spearman": -0.0051,
+          "pearson_corr": 0.0137,
+          "mae": 0.0006618,
+          "rmse": 0.00108,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": -1.252,
+              "mean_trade": -1.644e-05,
+              "total_logret": -0.04537,
+              "hit_rate": 0.458,
+              "max_drawdown": -0.06071
+            },
+            "0.5pip": {
+              "sharpe_ann": -5.061,
+              "mean_trade": -6.644e-05,
+              "total_logret": -0.18337,
+              "hit_rate": 0.4217,
+              "max_drawdown": -0.1868
+            },
+            "1.0pip": {
+              "sharpe_ann": -8.871,
+              "mean_trade": -0.0001164,
+              "total_logret": -0.32137,
+              "hit_rate": 0.392,
+              "max_drawdown": -0.32149
+            }
+          }
+        },
+        {
+          "name": "timesfm_return",
+          "n_windows": 2760,
+          "n_traded": 2760,
+          "dir_accuracy": 0.4725,
+          "binom_p_value": 0.0041,
+          "information_coef_spearman": -0.0064,
+          "pearson_corr": -0.0043,
+          "mae": 0.0006639,
+          "rmse": 0.001072,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": 0.351,
+              "mean_trade": 4.603e-06,
+              "total_logret": 0.0127,
+              "hit_rate": 0.4725,
+              "max_drawdown": -0.03553
+            },
+            "0.5pip": {
+              "sharpe_ann": -3.458,
+              "mean_trade": -4.54e-05,
+              "total_logret": -0.1253,
+              "hit_rate": 0.4391,
+              "max_drawdown": -0.12575
+            },
+            "1.0pip": {
+              "sharpe_ann": -7.267,
+              "mean_trade": -9.54e-05,
+              "total_logret": -0.2633,
+              "hit_rate": 0.4083,
+              "max_drawdown": -0.2634
+            }
+          }
+        }
+      ]
+    },
+    "H48": {
+      "n_windows": 2622,
+      "actual_cumret_std": 0.002025,
+      "timings": {
+        "timesfm_price_s": 19.8,
+        "timesfm_return_s": 20.2
+      },
+      "strategies": [
+        {
+          "name": "naive_flat",
+          "n_windows": 2622,
+          "n_traded": 0,
+          "dir_accuracy": null,
+          "binom_p_value": 1.0,
+          "information_coef_spearman": null,
+          "pearson_corr": null,
+          "mae": 0.001342,
+          "rmse": 0.002025,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            },
+            "0.5pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            },
+            "1.0pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            }
+          }
+        },
+        {
+          "name": "momentum",
+          "n_windows": 2622,
+          "n_traded": 2615,
+          "dir_accuracy": 0.4941,
+          "binom_p_value": 0.5574,
+          "information_coef_spearman": 0.0174,
+          "pearson_corr": -0.0187,
+          "mae": 0.002021,
+          "rmse": 0.002944,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": 0.648,
+              "mean_trade": 3.322e-05,
+              "total_logret": 0.0871,
+              "hit_rate": 0.4928,
+              "max_drawdown": -0.06962
+            },
+            "0.5pip": {
+              "sharpe_ann": -0.325,
+              "mean_trade": -1.665e-05,
+              "total_logret": -0.04365,
+              "hit_rate": 0.4718,
+              "max_drawdown": -0.08632
+            },
+            "1.0pip": {
+              "sharpe_ann": -1.298,
+              "mean_trade": -6.651e-05,
+              "total_logret": -0.1744,
+              "hit_rate": 0.455,
+              "max_drawdown": -0.20292
+            }
+          }
+        },
+        {
+          "name": "reversion",
+          "n_windows": 2622,
+          "n_traded": 2615,
+          "dir_accuracy": 0.5002,
+          "binom_p_value": 1.0,
+          "information_coef_spearman": -0.0174,
+          "pearson_corr": 0.0187,
+          "mae": 0.002034,
+          "rmse": 0.002889,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": -0.648,
+              "mean_trade": -3.322e-05,
+              "total_logret": -0.0871,
+              "hit_rate": 0.4989,
+              "max_drawdown": -0.11151
+            },
+            "0.5pip": {
+              "sharpe_ann": -1.621,
+              "mean_trade": -8.309e-05,
+              "total_logret": -0.21785,
+              "hit_rate": 0.4851,
+              "max_drawdown": -0.22313
+            },
+            "1.0pip": {
+              "sharpe_ann": -2.594,
+              "mean_trade": -0.000133,
+              "total_logret": -0.3486,
+              "hit_rate": 0.4676,
+              "max_drawdown": -0.34883
+            }
+          }
+        },
+        {
+          "name": "timesfm_price",
+          "n_windows": 2622,
+          "n_traded": 2622,
+          "dir_accuracy": 0.5084,
+          "binom_p_value": 0.401,
+          "information_coef_spearman": 0.0167,
+          "pearson_corr": 0.0069,
+          "mae": 0.001468,
+          "rmse": 0.002175,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": 0.568,
+              "mean_trade": 2.909e-05,
+              "total_logret": 0.07628,
+              "hit_rate": 0.5084,
+              "max_drawdown": -0.08115
+            },
+            "0.5pip": {
+              "sharpe_ann": -0.408,
+              "mean_trade": -2.091e-05,
+              "total_logret": -0.05482,
+              "hit_rate": 0.4901,
+              "max_drawdown": -0.12385
+            },
+            "1.0pip": {
+              "sharpe_ann": -1.383,
+              "mean_trade": -7.091e-05,
+              "total_logret": -0.18592,
+              "hit_rate": 0.4706,
+              "max_drawdown": -0.20013
+            }
+          }
+        },
+        {
+          "name": "timesfm_return",
+          "n_windows": 2622,
+          "n_traded": 2622,
+          "dir_accuracy": 0.4867,
+          "binom_p_value": 0.1778,
+          "information_coef_spearman": -0.0048,
+          "pearson_corr": 0.0081,
+          "mae": 0.001491,
+          "rmse": 0.002184,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": -0.352,
+              "mean_trade": -1.806e-05,
+              "total_logret": -0.04735,
+              "hit_rate": 0.4867,
+              "max_drawdown": -0.15583
+            },
+            "0.5pip": {
+              "sharpe_ann": -1.328,
+              "mean_trade": -6.806e-05,
+              "total_logret": -0.17845,
+              "hit_rate": 0.4683,
+              "max_drawdown": -0.24086
+            },
+            "1.0pip": {
+              "sharpe_ann": -2.303,
+              "mean_trade": -0.0001181,
+              "total_logret": -0.30955,
+              "hit_rate": 0.4523,
+              "max_drawdown": -0.34406
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "config": {
+    "data_dir": "data/split/EURUSD/weekly/train",
+    "context_len": 512,
+    "horizons": [
+      12
+    ],
+    "stride": 48,
+    "backend": "fake",
+    "max_files": 5,
+    "model_id": null
+  },
+  "results": {
+    "H12": {
+      "n_windows": 100,
+      "actual_cumret_std": 0.0009091,
+      "timings": {},
+      "strategies": [
+        {
+          "name": "naive_flat",
+          "n_windows": 100,
+          "n_traded": 0,
+          "dir_accuracy": null,
+          "binom_p_value": 1.0,
+          "information_coef_spearman": null,
+          "pearson_corr": null,
+          "mae": 0.000626,
+          "rmse": 0.0009099,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            },
+            "0.5pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            },
+            "1.0pip": {
+              "sharpe_ann": NaN,
+              "mean_trade": 0.0,
+              "total_logret": 0.0,
+              "hit_rate": 0.0,
+              "max_drawdown": 0.0
+            }
+          }
+        },
+        {
+          "name": "momentum",
+          "n_windows": 100,
+          "n_traded": 95,
+          "dir_accuracy": 0.4421,
+          "binom_p_value": 0.3049,
+          "information_coef_spearman": -0.1109,
+          "pearson_corr": -0.0313,
+          "mae": 0.0009676,
+          "rmse": 0.0014,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": -1.503,
+              "mean_trade": -1.731e-05,
+              "total_logret": -0.00173,
+              "hit_rate": 0.42,
+              "max_drawdown": -0.01405
+            },
+            "0.5pip": {
+              "sharpe_ann": -5.627,
+              "mean_trade": -6.481e-05,
+              "total_logret": -0.00648,
+              "hit_rate": 0.38,
+              "max_drawdown": -0.01688
+            },
+            "1.0pip": {
+              "sharpe_ann": -9.749,
+              "mean_trade": -0.0001123,
+              "total_logret": -0.01123,
+              "hit_rate": 0.37,
+              "max_drawdown": -0.01976
+            }
+          }
+        },
+        {
+          "name": "reversion",
+          "n_windows": 100,
+          "n_traded": 95,
+          "dir_accuracy": 0.5579,
+          "binom_p_value": 0.3049,
+          "information_coef_spearman": 0.1109,
+          "pearson_corr": 0.0313,
+          "mae": 0.0009104,
+          "rmse": 0.001367,
+          "backtest_by_cost": {
+            "0.0pip": {
+              "sharpe_ann": 1.503,
+              "mean_trade": 1.731e-05,
+              "total_logret": 0.00173,
+              "hit_rate": 0.53,
+              "max_drawdown": -0.01485
+            },
+            "0.5pip": {
+              "sharpe_ann": -2.621,
+              "mean_trade": -3.019e-05,
+              "total_logret": -0.00302,
+              "hit_rate": 0.49,
+              "max_drawdown": -0.01605
+            },
+            "1.0pip": {
+              "sharpe_ann": -6.745,
+              "mean_trade": -7.769e-05,
+              "total_logret": -0.00777,
+              "hit_rate": 0.43,
+              "max_drawdown": -0.01725
+            }
+          }
+        }
+      ]
+    }
+  }
+}
