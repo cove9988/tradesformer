@@ -1,6 +1,6 @@
 import json
 
-from src.timefm_features import TIMEFM_OBSERVATION_COLUMNS
+from src.timesfm_features import TIMESFM_OBSERVATION_COLUMNS
 
 
 class EnvConfig():
@@ -44,8 +44,11 @@ class EnvConfig():
             return self.config["data_processing"][item]
         return self.config["data_processing"]
 
+    def timesfm_observation_list(self):
+        return list(TIMESFM_OBSERVATION_COLUMNS)
+
     def timefm_observation_list(self):
-        return list(TIMEFM_OBSERVATION_COLUMNS)
+        return self.timesfm_observation_list()
 
     def trading_hour(self,place="New York"):
         """forex trading hour from different markets

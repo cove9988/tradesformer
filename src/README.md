@@ -53,9 +53,9 @@ Raw prices preserved:
 - close
 
 Main implementation files:
-- `src/timefm_features.py`: feature definitions and validation
+- `src/timesfm_features.py`: feature definitions and validation
 - `src/data_processor.py`: raw CSV -> weekly TimeFM dataset exporter
-- `src/timefm_dataset.py`: weekly CSV -> rolling `(context, horizon)` TimeFM samples
+- `src/timesfm_dataset.py`: weekly CSV -> rolling `(context, horizon)` TimeFM samples
 - `src/configure.json`: TimeFM-first observation list and forecast settings
 
 How to run:
@@ -66,7 +66,7 @@ Output location:
 - `./data/split/{symbol}/weekly/train/{symbol}_{iso_year}_{iso_week}.csv`
 
 Dataset adapter:
-- `build_timefm_dataset_from_config(data_directory)` loads weekly exports using:
+- `build_timesfm_dataset_from_config(data_directory)` loads weekly exports using:
   - `target_series`
   - `context_windows`
   - `forecast_horizons`

@@ -4,12 +4,12 @@ import sys
 import logging
 import pandas as pd
 import numpy as np
-from src.timefm_features import (
-    TIMEFM_HELPER_COLUMNS,
-    TIMEFM_OBSERVATION_COLUMNS,
-    add_causal_timefm_features,
+from src.timesfm_features import (
+    TIMESFM_HELPER_COLUMNS,
+    TIMESFM_OBSERVATION_COLUMNS,
+    add_causal_timesfm_features,
     add_time_context_features,
-    validate_timefm_week,
+    validate_timesfm_week,
 )
 from src.util.read_config import EnvConfig
 from src.util.logger_config import setup_logging
@@ -65,17 +65,17 @@ def patch_missing_data(df, dt_col_name='time', cf=None):
     return df
 
 
-def build_timefm_dataset(df, symbol, cf):
+def build_timesfm_dataset(df, symbol, cf):
     point = cf.symbol(symbol, "point")
     time_context = add_time_context_features(df, symbol=symbol)
-    feature_df = add_causal_timefm_features(time_context, point=point)
+    feature_df = add_causal_timesfm_features(time_context, point=point)
     feature_df = feature_df.replace([np.inf, -np.inf], np.nan)
     return feature_df
 
 
-def split_timefm_weeks(df, symbol='EURUSD', cf=None):
+def split_timesfm_weeks(df, symbol='EURUSD', cf=None):
     if cf is None:
-        raise ValueError("EnvConfig is required for split_timefm_weeks")
+        raise ValueError("EnvConfig is required for split_timesfm_weeks")
 
     split_cfg = cf.data_processing_parameters("train_eval_split")
     base_path = split_cfg["base_path"].format(symbol=symbol)
@@ -87,10 +87,10 @@ def split_timefm_weeks(df, symbol='EURUSD', cf=None):
         if week_df.empty:
             continue
 
-        is_valid, reason = validate_timefm_week(
+        is_valid, reason = validate_timesfm_week(
             week_df,
             bars_per_week=min_bars,
-            feature_cols=TIMEFM_OBSERVATION_COLUMNS,
+            feature_cols=TIMESFM_OBSERVATION_COLUMNS,
         )
         if not is_valid:
             logger.warning(f"Skipping {week_start}: {reason}")
@@ -103,12 +103,17 @@ def split_timefm_weeks(df, symbol='EURUSD', cf=None):
         fname = f"{symbol}_{iso_year}_{iso_week:02d}.csv"
         keep_cols = [
             'open', 'high', 'low', 'close', 'symbol',
-            *TIMEFM_OBSERVATION_COLUMNS,
-            *TIMEFM_HELPER_COLUMNS,
+            *TIMESFM_OBSERVATION_COLUMNS,
+            *TIMESFM_HELPER_COLUMNS,
         ]
         export_df = week_df[keep_cols].reset_index().rename(columns={'index': 'time'})
         export_df.to_csv(f"{path}/{fname}", index=False)
         logger.info(f"Saved TimeFM weekly file: {fname}")
+
+
+    # Backward-compatible TimeFM aliases.
+    build_timefm_dataset = build_timesfm_dataset
+    split_timefm_weeks = split_timesfm_weeks
 
 
 if __name__ == '__main__':
@@ -127,8 +132,8 @@ if __name__ == '__main__':
 
         df = pd.read_csv(file)
         df = patch_missing_data(df, cf=cf)
-        df = build_timefm_dataset(df, symbol=symbol, cf=cf)
-        split_timefm_weeks(df, symbol=symbol, cf=cf)
+        df = build_timesfm_dataset(df, symbol=symbol, cf=cf)
+        split_timesfm_weeks(df, symbol=symbol, cf=cf)
         logger.info("TimeFM processing completed successfully")
 
     except Exception as e:
