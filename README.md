@@ -1,353 +1,221 @@
-Below is a detailed implementation of a hybrid Forex trading application that combines Proximal Policy Optimization (PPO) reinforcement learning with transformer-based models. This approach leverages the strengths of both RL and transformers to potentially enhance trading performance.
+# tradesformer
 
-Table of Contents
-Introduction
-Project Setup
-Dependencies
-Data Collection and Preprocessing
-Data Download
-Data Preprocessing
-Building the Transformer Model
-Custom Time-Series Transformer
-Modifying the PPO Agent
-Custom Policy with Transformer
-Creating the Custom Gym Environment
-Environment Adjustments
-Training the Hybrid Agent
-Evaluation
-Conclusion
-References
-Introduction
-In this implementation, we'll:
-![sample](./doc/AUDUSD-20250110213405.png)
-Combine PPO RL with a Transformer Model: Integrate a transformer into the PPO agent's policy network to process sequential market data.
-Develop a Custom Gym Environment: Simulate the Forex trading environment with appropriate state representation and reward structure.
-Train and Evaluate the Agent: Train the hybrid agent and assess its performance.
-Project Setup
-Dependencies
-Install the necessary Python libraries:
+Experimental FX research repo focused on TimeFM/TimesFM-style forecasting and simple, honest backtests on 5-minute data.
 
-bash
-Copy code
-pip install numpy pandas matplotlib scikit-learn torch gym stable-baselines3 yfinance ta
-numpy, pandas: Data manipulation.
-matplotlib: Data visualization.
-scikit-learn: Preprocessing and evaluation metrics.
-torch: Deep learning framework.
-gym: Reinforcement learning environment.
-stable-baselines3: PPO implementation.
-yfinance: Market data retrieval.
-ta: Technical analysis indicators.
-Data Collection and Preprocessing
-Data Download
-We'll use yfinance to download historical Forex data.
+This branch is no longer centered on the older PPO trading-agent approach. The active direction is:
+- weekly-split, causal dataset construction
+- TimesFM 2.5 volatility forecasting
+- multi-pair LoRA fine-tuning experiments
+- economic evaluation against simple baselines
+- explicit go/no-go checks before claiming trading value
 
-python
-Copy code
-import yfinance as yf
-import pandas as pd
+## Current branch status
 
-# Define the currency pair and period
-symbol = 'EURUSD=X'  # EUR/USD exchange rate
-start_date = '2022-01-01'
-end_date = '2023-01-01'
-interval = '5m'  # 5-minute intervals
+This branch has a clear research conclusion so far:
+- TimesFM volatility forecasts do appear to contain real predictive signal versus simple baselines.
+- But on the current intraday FX monetization path tested here, that forecast edge does **not** become a useful trading/sizing edge.
 
-# Download data
-data = yf.download(symbol, start=start_date, end=end_date, interval=interval)
-data = data.dropna()
-Data Preprocessing
-Adding Technical Indicators
-We can enhance the data by adding technical indicators using the ta library.
+Most important findings from the current work:
+1. Zero-shot and fine-tuned TimesFM can beat naive volatility baselines on forward realized-vol metrics.
+2. A simple HAR-style linear volatility model is also strong, so model wins must be judged against stronger baselines than a lagged EWMA alone.
+3. In the current 5-pair intraday momentum setup, inverse-vol / vol-target sizing is a **no-go**: constant position sizing beats the tested vol-target overlays, even before realistic costs.
+4. Honest interpretation: the model may predict volatility better, but the current strategy channel does not convert that into economic value.
 
-python
-Copy code
-from ta.volatility import BollingerBands
-from ta.trend import MACD, SMAIndicator
-from ta.momentum import RSIIndicator
+So this branch is best read as a forecasting-and-evaluation research branch, not a production trading system.
 
-# Calculate indicators
-data['SMA'] = SMAIndicator(data['Close'], window=14).sma_indicator()
-data['MACD'] = MACD(data['Close']).macd()
-data['RSI'] = RSIIndicator(data['Close'], window=14).rsi()
+## What this repo is testing
 
-# Bollinger Bands
-bb_indicator = BollingerBands(data['Close'])
-data['BB_High'] = bb_indicator.bollinger_hband()
-data['BB_Low'] = bb_indicator.bollinger_lband()
+The active question is not “can a transformer trade FX direction directly?”
 
-# Drop NaN values
-data = data.dropna()
-Feature Engineering
-Normalize and prepare the data.
+It is closer to:
+- can TimesFM forecast short-horizon realized volatility on FX 5-minute data?
+- does multi-pair fine-tuning improve that forecast?
+- does any forecast improvement survive stronger baselines and cost-aware backtests?
 
-python
-Copy code
-from sklearn.preprocessing import MinMaxScaler
+## Data pipeline
 
-# Select features
-features = ['Open', 'High', 'Low', 'Close', 'Volume', 'SMA', 'MACD', 'RSI', 'BB_High', 'BB_Low']
-scaler = MinMaxScaler()
-data[features] = scaler.fit_transform(data[features])
+The repo now uses a TimeFM-first weekly dataset pipeline with no backward-compatibility goal for the older PPO-era feature design.
 
-# Reset index
-data = data.reset_index()
-Sequence Preparation
-Prepare sequences for the transformer.
+Design choices:
+- treat each weekly CSV as the dataset boundary
+- keep raw OHLC for downstream execution/backtesting use
+- use only causal features available up to each bar
+- avoid whole-week normalization and heavy indicator stacks
+- prefer relative-price, return, realized-vol, bar-structure, and session/context features
 
-python
-Copy code
-import numpy as np
+Primary exported features include:
+- week-open-relative prices
+- multi-horizon returns
+- realized volatility windows
+- ATR-relative regime features
+- moving-average relative features
+- bar-structure features
+- session flags and weekly progress
 
-sequence_length = 12  # Number of past observations to consider
+Helper columns retained for research utilities include:
+- `log_return_1`
+- `true_range`
+- `atr`
+- `sma_288`
+- `sma_576`
+- `iso_year`
+- `iso_week`
 
-def create_sequences(df, seq_length):
-    sequences = []
-    for i in range(len(df) - seq_length):
-        seq = df.iloc[i:i+seq_length][features].values
-        sequences.append(seq)
-    return np.array(sequences)
-
-sequences = create_sequences(data, sequence_length)
-Building the Transformer Model
-Custom Time-Series Transformer
-We will create a transformer model tailored for time-series data.
-
-python
-Copy code
-import torch
-import torch.nn as nn
-
-class TimeSeriesTransformer(nn.Module):
-    def __init__(self, feature_size, num_heads, num_layers, dropout=0.1):
-        super(TimeSeriesTransformer, self).__init__()
-        self.model_type = 'Transformer'
-        self.positional_encoding = nn.Parameter(torch.zeros(1, sequence_length, feature_size))
-        encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=num_heads, dropout=dropout)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.decoder = nn.Linear(feature_size, feature_size)
-        self.feature_size = feature_size
-
-    def forward(self, src):
-        src = src + self.positional_encoding
-        output = self.transformer_encoder(src)
-        output = self.decoder(output)
-        return output[:, -1, :]  # Return the last time step's output
-Explanation:
-The transformer processes sequences of market data.
-We add positional encoding to retain temporal information.
-The decoder outputs a representation for the last time step.
-Modifying the PPO Agent
-Custom Policy with Transformer
-We need to create a custom policy network that incorporates the transformer model.
-
-python
-Copy code
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from stable_baselines3 import PPO
-import gym
-import torch.nn.functional as F
-
-class CustomCombinedExtractor(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.spaces.Box, feature_size=64):
-        super(CustomCombinedExtractor, self).__init__(observation_space, features_dim=feature_size)
-        self.sequence_length = sequence_length
-        num_features = observation_space.shape[1]
-        self.transformer = TimeSeriesTransformer(
-            feature_size=num_features,
-            num_heads=4,
-            num_layers=2
-        )
-
-    def forward(self, observations):
-        # observations shape: (batch_size, seq_length, num_features)
-        x = self.transformer(observations)
-        return x
-
-# Update policy kwargs to use the custom extractor
-policy_kwargs = dict(
-    features_extractor_class=CustomCombinedExtractor,
-    features_extractor_kwargs=dict(feature_size=len(features)),
-    net_arch=[dict(pi=[64, 64], vf=[64, 64])],
-    activation_fn=nn.ReLU
-)
-Explanation:
-The CustomCombinedExtractor extracts features using the transformer model.
-The output is fed into the policy (pi) and value function (vf) networks.
-Creating the Custom Gym Environment
-Environment Adjustments
-We'll adjust the environment to work with sequences and provide data suitable for the transformer.
-
-python
-Copy code
-class ForexTradingEnv(gym.Env):
-    metadata = {'render.modes': ['human']}
-
-    def __init__(self, data, sequence_length):
-        super(ForexTradingEnv, self).__init__()
-        self.data = data
-        self.sequence_length = sequence_length
-        self.max_steps = len(self.data) - self.sequence_length - 1
-        self.current_step = 0
-
-        self.initial_balance = 10000.0
-        self.balance = self.initial_balance
-        self.net_worth = self.initial_balance
-        self.positions = 0.0
-        self.total_profit = 0.0
-
-        # Define action and observation space
-        # Actions: 0 = Hold, 1 = Buy, 2 = Sell
-        self.action_space = spaces.Discrete(3)
-
-        # Observation space: sequence_length x number of features
-        obs_shape = (self.sequence_length, len(features))
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float32)
-
-    def reset(self):
-        self.balance = self.initial_balance
-        self.net_worth = self.initial_balance
-        self.positions = 0.0
-        self.total_profit = 0.0
-
-        self.current_step = np.random.randint(self.sequence_length, self.max_steps)
-        return self._next_observation()
-
-    def _next_observation(self):
-        obs = self.data.iloc[self.current_step - self.sequence_length:self.current_step][features].values
-        return obs
-
-    def step(self, action):
-        done = False
-        reward = 0
-
-        current_price = self.data.iloc[self.current_step]['Close']
-
-        # Execute action
-        if action == 1:  # Buy
-            if self.balance > 0:
-                self.positions = self.balance / current_price
-                self.balance = 0
-        elif action == 2:  # Sell
-            if self.positions > 0:
-                self.balance = self.positions * current_price
-                self.positions = 0
-
-        # Update net worth
-        self.net_worth = self.balance + self.positions * current_price
-
-        # Calculate reward as the change in net worth
-        reward = self.net_worth - self.initial_balance
-
-        # Move to the next time step
-        self.current_step += 1
-
-        if self.current_step >= self.max_steps:
-            done = True
-
-        obs = self._next_observation()
-        info = {'net_worth': self.net_worth}
-
-        return obs, reward, done, info
-
-    def render(self, mode='human'):
-        profit = self.net_worth - self.initial_balance
-        print(f'Step: {self.current_step}')
-        print(f'Balance: {self.balance:.2f}')
-        print(f'Positions: {self.positions:.4f}')
-        print(f'Net Worth: {self.net_worth:.2f}')
-        print(f'Profit: {profit:.2f}')
-Explanation:
-The environment now provides sequences of observations suitable for the transformer.
-The agent receives a sequence of past observations and decides to hold, buy, or sell.
-The reward is the change in net worth.
-Training the Hybrid Agent
-python
-Copy code
-import gym
-from stable_baselines3.common.vec_env import DummyVecEnv
-
-# Prepare the environment
-env = DummyVecEnv([lambda: ForexTradingEnv(data, sequence_length)])
-
-# Initialize the PPO agent
-model = PPO('MlpPolicy', env, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log='./ppo_forex_tensorboard/')
-
-# Train the agent
-total_timesteps = 100000  # Adjust as needed
-model.learn(total_timesteps=total_timesteps)
-
-# Save the model
-model.save('ppo_forex_transformer')
-Notes:
-Adjust total_timesteps based on your computational resources.
-TensorBoard logging can help monitor training progress.
-Evaluation
-python
-Copy code
-# Load the trained model
-model = PPO.load('ppo_forex_transformer')
-
-# Evaluate the agent
-env = ForexTradingEnv(data, sequence_length)
-obs = env.reset()
-done = False
-
-while not done:
-    action, _states = model.predict(obs)
-    obs, reward, done, info = env.step(action)
-    env.render()
-Visualization:
-You can collect performance metrics and plot net worth over time.
-Implement more sophisticated evaluation by running the agent over multiple episodes and aggregating results.
-Conclusion
-In this implementation, we've created a hybrid Forex trading agent that combines PPO reinforcement learning with a transformer model:
-
-Transformer Integration: The transformer processes sequences of market data to extract temporal features.
-Custom Policy Network: The policy network incorporates the transformer's output to make trading decisions.
-Environment Adjustments: The environment provides sequential observations compatible with the transformer's input requirements.
-Potential Enhancements:
-
-Hyperparameter Tuning: Experiment with different transformer configurations (number of layers, heads, etc.).
-Feature Engineering: Include additional features such as economic indicators or sentiment analysis.
-Risk Management: Incorporate transaction costs, slippage, and risk constraints into the environment and agent.
-References
-Vaswani, A., et al. (2017). Attention is all you need. Link
-OpenAI Baselines: GitHub Repository
-Stable Baselines3 Documentation: Link
-PyTorch Documentation: Link
-TA-Lib Technical Analysis Library: Link
-
-# TimeFM-first preprocessing update
-This branch is moving to a new TimeFM-first data pipeline and is intentionally not maintaining backward compatibility with the older PPO-era feature design.
-
-Key changes:
-- weekly z-score normalization is removed
-- PPO-era indicator-heavy observation design is removed
-- new causal weekly features focus on:
-  - week-open-relative price path
-  - multi-horizon returns
-  - realized volatility and ATR-relative regime features
-  - relative moving-average trend features
-  - bar-structure features
-  - session and weekly-progress context
-- raw OHLC are retained for downstream execution/backtesting logic
-
-Main files:
-- `src/timefm_features.py`
+See also:
+- `src/README.md`
 - `src/data_processor.py`
-- `src/timefm_dataset.py`
+- `src/timesfm_features.py`
+- `src/timesfm_dataset.py`
 - `src/configure.json`
 
-Current intended preprocessing command:
-- `python -m src.data_processor EURUSD`
+## Repository layout
 
-Output path:
-- `data/split/{symbol}/weekly/train/*.csv`
+- `src/data_processor.py` — raw CSV to weekly split exporter
+- `src/timesfm_features.py` — causal feature definitions and validation
+- `src/timesfm_dataset.py` — rolling `(context, horizon)` dataset construction
+- `src/timesfm_forecaster.py` — TimesFM wrapper / loading helpers
+- `src/timesfm_vol_eval.py` — core realized-vol forecasting evaluation
+- `src/timesfm_vol_trade.py` — trade vol against implied-vol proxy harness
+- `src/timesfm_vol_finetune.py` — single-pair volatility fine-tuning
+- `src/timesfm_vol_finetune_multipair.py` — pooled multi-pair fine-tuning
+- `src/timesfm_vol_finetune_multipair_econ.py` — pooled fine-tuning with econIC-based checkpoint selection
+- `src/timesfm_multipair_forward_eval.py` — 2025-26 forward matrix across adapters/pairs
+- `src/har_baseline_eval.py` — HAR baseline through the same evaluation harness
+- `src/voltarget_backtest.py` — minimal vol-target sizing ladder / go-no-go test
+- `test/` — unit tests for datasets, evaluation, and experiment integrity guards
 
-Dataset adapter:
-- `src.timefm_dataset.build_timefm_dataset_from_config(data_directory)` builds a grid keyed by `(context_window, forecast_horizon)`
-- it uses config defaults from `target_series`, `context_windows`, and `forecast_horizons`
-- each sample contains past target values, past dynamic covariates, future target values, and timestamp boundaries
+## Environment
 
-This preprocessing is designed for forecasting experiments first. Forecast quality should be validated before building deterministic trading rules or any later execution layer.
+This repo is managed with Poetry.
+
+Install dependencies:
+
+```bash
+poetry install
+```
+
+The branch currently relies on the Hugging Face Transformers path for TimesFM 2.5, not the retired TimesFM v1 JAX/PAX path.
+
+Key dependencies from `pyproject.toml` include:
+- Python 3.10+
+- numpy
+- pandas
+- scikit-learn
+- torch
+- stable-baselines3
+- transformers
+- accelerate
+- peft
+
+## Typical workflow
+
+### 1) Build weekly splits
+
+```bash
+python -m src.data_processor EURUSD
+python -m src.data_processor AUDUSD W ./data/raw/AUDUSD_M5.csv
+```
+
+Output goes to:
+
+```text
+data/split/{symbol}/weekly/train/{symbol}_{iso_year}_{iso_week}.csv
+```
+
+### 2) Evaluate volatility forecasting
+
+```bash
+PYTHONPATH=. python -m src.timesfm_vol_eval --context-len 512 --horizons 48 96 --window 48
+PYTHONPATH=. python -m src.timesfm_vol_eval --backend fake
+```
+
+### 3) Trade the forecast against a simple implied-vol proxy
+
+```bash
+PYTHONPATH=. .venv/bin/python3.12 -m src.timesfm_vol_trade --backend fake --split test
+```
+
+### 4) Fine-tune pooled multi-pair volatility adapters
+
+```bash
+PYTHONPATH=. HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTORCH_ENABLE_MPS_FALLBACK=1 \
+  .venv/bin/python3.12 -m src.timesfm_vol_finetune_multipair_econ \
+  --pairs EURUSD GBPUSD USDCAD USDCHF USDJPY \
+  --context-len 512 --horizon-len 96 --window 48 \
+  --val-weeks-per-pair 21 --num-samples 16000 --epochs 10 \
+  --batch-size 16 --lr 5e-4 --lora-r 8 --lora-alpha 16 --lora-dropout 0.1 \
+  --output-dir data/adapters/multipair_vol_h96_econ
+```
+
+### 5) Run forward comparison matrix
+
+```bash
+PYTHONPATH=. HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTORCH_ENABLE_MPS_FALLBACK=1 \
+  .venv/bin/python3.12 -m src.timesfm_multipair_forward_eval --device mps
+```
+
+### 6) Run stronger baseline / monetization checks
+
+```bash
+PYTHONPATH=. .venv/bin/python3.12 -m src.har_baseline_eval
+PYTHONPATH=. .venv/bin/python3.12 -m src.voltarget_backtest
+```
+
+## Important experiment files
+
+### Core forecasting
+- `src/timesfm_vol_eval.py`
+- `src/timesfm_vol_trade.py`
+- `src/timesfm_breakout_vol_gate.py`
+
+### Fine-tuning and forward tests
+- `src/timesfm_vol_finetune.py`
+- `src/timesfm_vol_finetune_multipair.py`
+- `src/timesfm_vol_finetune_multipair_econ.py`
+- `src/timesfm_multipair_forward_eval.py`
+
+### Honest benchmark / falsification scripts
+- `src/har_baseline_eval.py`
+- `src/voltarget_backtest.py`
+
+### Tests guarding experiment credibility
+- `test/test_timesfm_vol_eval.py`
+- `test/test_timesfm_vol_finetune.py`
+- `test/test_timesfm_vol_finetune_multipair.py`
+- `test/test_timesfm_vol_finetune_multipair_econ.py`
+- `test/test_timesfm_vol_trade.py`
+
+## Output artifacts
+
+Common output locations used by this branch:
+- `data/predictions/eval/`
+- `data/predictions/forward/`
+- `data/adapters/`
+
+Examples generated by the current work include:
+- `data/predictions/forward/multipair_test3_econ_matrix.json`
+- `data/predictions/forward/har_baseline_matrix.json`
+- `data/predictions/forward/voltarget_config.json`
+
+## Research standards for this branch
+
+This branch is intentionally strict about honesty:
+- do not treat weak baseline wins as proof of trading value
+- separate forecasting skill from monetization skill
+- test leakage boundaries explicitly
+- prefer negative results over optimistic stories
+- require cost-aware comparisons before making any trading claim
+
+## Limitations
+
+Important limitations of the current setup:
+- no real options/implied-vol feed; `timesfm_vol_trade.py` uses an EWMA-based implied-vol proxy
+- no interest-rate panel, so true FX carry is not tested here
+- current sizing backtest is an intraday momentum/mean-reversion proxy, not a full portfolio construction stack
+- strong forecasting metrics do not imply live profitability
+
+## Legacy material
+
+Older PPO/transformer trading-agent material still exists in the repository history and some subdirectories, but it does not represent the main direction of this branch anymore.
+
+If you want the feature-engineering and weekly pipeline details, start with `src/README.md`.
